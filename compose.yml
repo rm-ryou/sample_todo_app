@@ -3,10 +3,11 @@ services:
     build:
       context: "."
       dockerfile: "Dockerfile.dev"
+    depends_on:
+      mysql:
+        condition: "service_healthy"
     ports:
       - "8080:8080"
-    # TODO: wait for mysql to start.
-    # to be added when creating the db layer in application code.
     volumes:
       - ".:/app"
 
@@ -17,6 +18,10 @@ services:
       MYSQL_DATABASE: "${MYSQL_DATABASE:-sample_todo_app}"
       MYSQL_USER: "${MYSQL_USER:-user}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD:-password}"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: "5s"
+      retries: 10
     volumes:
       - "mysql:/var/lib/mysql"
 
