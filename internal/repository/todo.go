@@ -1,0 +1,37 @@
+package repository
+
+import (
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/rm-ryou/sample_todo_app/internal/entity"
+)
+
+type Todo struct {
+	db *sql.DB
+}
+
+func NewTodo(db *sql.DB) *Todo {
+	return &Todo{
+		db: db,
+	}
+}
+
+func (t *Todo) Get(id int) (*entity.Todo, error) {
+	var todo entity.Todo
+	query := `SELECT * FROM todos WHERE id = ?`
+
+	if err := t.db.QueryRow(query, id).Scan(
+		&todo.Id,
+		&todo.Title,
+		&todo.Done,
+		&todo.Priority,
+		&todo.DueDate,
+		&todo.CreatedAt,
+		&todo.UpdatedAt,
+	); err != nil {
+		return nil, err
+	}
+
+	return &todo, nil
+}

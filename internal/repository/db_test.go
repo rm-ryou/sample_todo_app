@@ -55,6 +55,7 @@ func TestSetupConnection(t *testing.T) {
 			if !tc.expectError {
 				assert.NoError(t, err)
 				assert.NotNil(t, db)
+				db.Close()
 			} else {
 				assert.Error(t, err)
 				assert.Nil(t, db)

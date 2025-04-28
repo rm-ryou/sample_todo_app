@@ -15,10 +15,12 @@ INSERT INTO `todos` (
   `title`,
   `done`,
   `priority`,
-  `due_date`
+  `created_at`,
+  `updated_at`
 ) VALUES (
   "Test Task",
   FALSE,
   3,
+  "2025-05-01 10:00:00",
   "2025-05-01 10:00:00"
 );
