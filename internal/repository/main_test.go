@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 
 	port, err := container.MappedPort(ctx, "3306")
 	if err != nil {
-		log.Fatalf("failed to get contaiers port: %v", err)
+		log.Fatalf("failed to get contaier's port: %v", err)
 	}
 	MYSQL_PORT = port.Port()
 

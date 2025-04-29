@@ -36,7 +36,7 @@ func TestSetupConnection(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "Failed to connection with wrong usre info",
+			name: "Failed to connection with wrong user info",
 			config: config.DB{
 				Database: MYSQL_DATABASE,
 				User:     "invalidUser",
