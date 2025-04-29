@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
+
+	"github.com/rm-ryou/sample_todo_app/internal/api"
+	"github.com/rm-ryou/sample_todo_app/internal/config"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, "Hello, World!")
-	})
-
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	cfg, err := config.NewConfig()
+	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
+
+	api.Run(cfg)
 }
