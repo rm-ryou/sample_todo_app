@@ -52,3 +52,11 @@ func (t *Todo) Get(id int) (*entity.Todo, error) {
 
 	return &todo, nil
 }
+
+func (t *Todo) Update(todo *entity.Todo) error {
+	return nil
+}
+
+func (t *Todo) Delete(id int) error {
+	return nil
+}

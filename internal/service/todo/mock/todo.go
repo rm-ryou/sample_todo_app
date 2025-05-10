@@ -93,6 +93,34 @@ func (mr *MockModifierMockRecorder) Create(todo any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockModifier)(nil).Create), todo)
 }
 
+// Delete mocks base method.
+func (m *MockModifier) Delete(id int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockModifierMockRecorder) Delete(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockModifier)(nil).Delete), id)
+}
+
+// Update mocks base method.
+func (m *MockModifier) Update(todo *entity.Todo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", todo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockModifierMockRecorder) Update(todo any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockModifier)(nil).Update), todo)
+}
+
 // MockRepository is a mock of Repository interface.
 type MockRepository struct {
 	ctrl     *gomock.Controller
@@ -131,6 +159,20 @@ func (mr *MockRepositoryMockRecorder) Create(todo any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), todo)
 }
 
+// Delete mocks base method.
+func (m *MockRepository) Delete(id int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockRepositoryMockRecorder) Delete(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), id)
+}
+
 // Get mocks base method.
 func (m *MockRepository) Get(id int) (*entity.Todo, error) {
 	m.ctrl.T.Helper()
@@ -144,6 +186,20 @@ func (m *MockRepository) Get(id int) (*entity.Todo, error) {
 func (mr *MockRepositoryMockRecorder) Get(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), id)
+}
+
+// Update mocks base method.
+func (m *MockRepository) Update(todo *entity.Todo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", todo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockRepositoryMockRecorder) Update(todo any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRepository)(nil).Update), todo)
 }
 
 // MockServicer is a mock of Servicer interface.

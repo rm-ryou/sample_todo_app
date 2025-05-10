@@ -8,6 +8,8 @@ type Getter interface {
 
 type Modifier interface {
 	Create(todo *entity.Todo) error
+	Update(todo *entity.Todo) error
+	Delete(id int) error
 }
 
 type Repository interface {
