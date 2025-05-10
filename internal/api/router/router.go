@@ -13,7 +13,7 @@ func New(db *sql.DB) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.Handle("/health", healthCheckMux())
-	mux.Handle("/v1/todos/", todoMux(db))
+	mux.Handle("/v1/todos", todoMux(db))
 
 	return mux
 }
@@ -31,7 +31,8 @@ func todoMux(db *sql.DB) *http.ServeMux {
 	handler := handler.NewTodo(service)
 
 	mux := http.NewServeMux()
-	mux.Handle("/v1/todos/{id}", http.HandlerFunc(handler.GetById))
+	mux.Handle("GET /v1/todos/{id}", http.HandlerFunc(handler.GetById))
+	mux.Handle("POST /v1/todos", http.HandlerFunc(handler.CreateTodo))
 
 	return mux
 }
