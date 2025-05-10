@@ -59,7 +59,7 @@ func TestCreateTodo(t *testing.T) {
 			handler := NewTodo(mockService)
 
 			mux := http.NewServeMux()
-			mux.HandleFunc("POST /v1/todos", handler.CreateTodo)
+			mux.HandleFunc("POST /v1/todos", handler.Create)
 
 			body := bytes.NewBufferString(tc.requestBody)
 			req := httptest.NewRequest(http.MethodPost, "/v1/todos", body)

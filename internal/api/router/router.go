@@ -32,7 +32,7 @@ func todoMux(db *sql.DB) *http.ServeMux {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /v1/todos/{id}", http.HandlerFunc(todoHandler.GetById))
-	mux.Handle("POST /v1/todos/", http.HandlerFunc(todoHandler.CreateTodo))
+	mux.Handle("POST /v1/todos/", http.HandlerFunc(todoHandler.Create))
 	mux.Handle("PUT /v1/todos/{id}", http.HandlerFunc(todoHandler.Update))
 	mux.Handle("DELETE /v1/todos/{id}", http.HandlerFunc(todoHandler.Delete))
 

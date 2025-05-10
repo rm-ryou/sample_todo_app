@@ -21,7 +21,7 @@ func NewTodo(s todo.Servicer) *Todo {
 	}
 }
 
-func (t *Todo) CreateTodo(w http.ResponseWriter, r *http.Request) {
+func (t *Todo) Create(w http.ResponseWriter, r *http.Request) {
 	todo := &entity.Todo{}
 
 	if err := json.NewDecoder(r.Body).Decode(todo); err != nil {
