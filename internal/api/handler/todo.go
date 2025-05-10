@@ -63,3 +63,11 @@ func (t *Todo) GetById(w http.ResponseWriter, r *http.Request) {
 		ErrorResponse(w, http.StatusInternalServerError, err)
 	}
 }
+
+func (t *Todo) Update(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (t *Todo) Delete(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
