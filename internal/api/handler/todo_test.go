@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,6 +16,62 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
+
+func TestCreateTodo(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mock_service.NewMockServicer(ctrl)
+
+	testCases := []struct {
+		name           string
+		requestBody    string
+		setupMock      func()
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name:        "Success to Create new todo",
+			requestBody: `{"title":"TestTodo"}`,
+			setupMock: func() {
+				mockService.EXPECT().CreateTodo(gomock.Any()).Return(nil)
+			},
+			expectedStatus: 200,
+			expectedBody:   `{"message":"OK"}`,
+		},
+		{
+			name:        "Failed with bad request - Due to number of characters in the title is more than 50",
+			requestBody: fmt.Sprintf(`{"title":"%s"}`, strings.Repeat("a", 51)),
+			setupMock: func() {
+				mockService.EXPECT().CreateTodo(gomock.Any()).
+					// FIXME: use custom error
+					Return(errors.New("Title must be 50 characters or less"))
+			},
+			// TODO: response 400 error
+			expectedStatus: 500,
+			expectedBody:   `{"message":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setupMock()
+			handler := NewTodo(mockService)
+
+			mux := http.NewServeMux()
+			mux.HandleFunc("POST /v1/todos", handler.CreateTodo)
+
+			body := bytes.NewBufferString(tc.requestBody)
+			req := httptest.NewRequest(http.MethodPost, "/v1/todos", body)
+			res := httptest.NewRecorder()
+
+			mux.ServeHTTP(res, req)
+
+			assert.Equal(t, tc.expectedStatus, res.Code)
+			assert.JSONEq(t, tc.expectedBody, res.Body.String())
+		})
+	}
+}
 
 func TestGetById(t *testing.T) {
 	ctrl := gomock.NewController(t)
