@@ -17,6 +17,23 @@ func NewTodo(db *sql.DB) *Todo {
 	}
 }
 
+func (t *Todo) Create(todo *entity.Todo) error {
+	query := `INSERT INTO todos (title, done, priority, due_date) VALUES (?, ?, ?, ?)`
+
+	stmt, err := t.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(todo.Title, todo.Done, todo.Priority, todo.DueDate)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (t *Todo) Get(id int) (*entity.Todo, error) {
 	var todo entity.Todo
 	query := `SELECT * FROM todos WHERE id = ?`

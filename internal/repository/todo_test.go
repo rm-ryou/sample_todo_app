@@ -26,6 +26,60 @@ func setup(t *testing.T) *Todo {
 	return NewTodo(db)
 }
 
+func fetchTodoRows(t *testing.T, repo *Todo) int {
+	var todoRows int
+
+	query := "SELECT COUNT(*) FROM todos"
+	err := repo.db.QueryRow(query).Scan(&todoRows)
+	require.NoError(t, err)
+
+	return todoRows
+}
+
+func TestCreate(t *testing.T) {
+	repo := setup(t)
+	beforeTodoRows := fetchTodoRows(t, repo)
+
+	testCases := []struct {
+		name             string
+		todo             *entity.Todo
+		expectedTodoRows int
+		expectedError    error
+	}{
+		{
+			name: "Success to Create todo",
+			todo: &entity.Todo{
+				Title:    "Test!!",
+				Done:     false,
+				Priority: 1,
+			},
+			expectedTodoRows: beforeTodoRows + 1,
+			expectedError:    nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := repo.Create(tc.todo)
+
+			if tc.expectedError != nil {
+				assert.Equal(t, tc.expectedError, err)
+			} else {
+				assert.Nil(t, err)
+
+				todoRows := fetchTodoRows(t, repo)
+				assert.Equal(t, tc.expectedTodoRows, todoRows)
+
+				t.Cleanup(func() {
+					query := `DELETE FROM todos WHERE title = ?`
+					_, err := repo.db.Exec(query, tc.todo.Title)
+					require.NoError(t, err)
+				})
+			}
+		})
+	}
+}
+
 func TestGet(t *testing.T) {
 	repo := setup(t)
 
@@ -59,8 +113,8 @@ func TestGet(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			todo, err := repo.Get(tc.id)
-			assert.Equal(t, err, tc.expectedError)
-			assert.Equal(t, todo, tc.expectedData)
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedData, todo)
 		})
 	}
 }
