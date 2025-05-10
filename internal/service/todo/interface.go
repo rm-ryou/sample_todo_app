@@ -6,7 +6,9 @@ type Getter interface {
 	Get(id int) (*entity.Todo, error)
 }
 
-type Modifier interface{}
+type Modifier interface {
+	Create(todo *entity.Todo) error
+}
 
 type Repository interface {
 	Getter
@@ -15,4 +17,5 @@ type Repository interface {
 
 type Servicer interface {
 	GetTodo(id int) (*entity.Todo, error)
+	CreateTodo(todo *entity.Todo) error
 }

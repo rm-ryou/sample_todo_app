@@ -12,6 +12,13 @@ func NewService(r Repository) *Service {
 	}
 }
 
+func (s *Service) CreateTodo(todo *entity.Todo) error {
+	if err := todo.Validate(); err != nil {
+		return err
+	}
+	return s.r.Create(todo)
+}
+
 func (s *Service) GetTodo(id int) (*entity.Todo, error) {
 	return s.r.Get(id)
 }
