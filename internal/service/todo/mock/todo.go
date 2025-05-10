@@ -40,19 +40,19 @@ func (m *MockGetter) EXPECT() *MockGetterMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method.
-func (m *MockGetter) Get(id int) (*entity.Todo, error) {
+// GetById mocks base method.
+func (m *MockGetter) GetById(id int) (*entity.Todo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "GetById", id)
 	ret0, _ := ret[0].(*entity.Todo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockGetterMockRecorder) Get(id any) *gomock.Call {
+// GetById indicates an expected call of GetById.
+func (mr *MockGetterMockRecorder) GetById(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockGetter)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockGetter)(nil).GetById), id)
 }
 
 // MockModifier is a mock of Modifier interface.
@@ -173,19 +173,19 @@ func (mr *MockRepositoryMockRecorder) Delete(id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRepository)(nil).Delete), id)
 }
 
-// Get mocks base method.
-func (m *MockRepository) Get(id int) (*entity.Todo, error) {
+// GetById mocks base method.
+func (m *MockRepository) GetById(id int) (*entity.Todo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "GetById", id)
 	ret0, _ := ret[0].(*entity.Todo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get.
-func (mr *MockRepositoryMockRecorder) Get(id any) *gomock.Call {
+// GetById indicates an expected call of GetById.
+func (mr *MockRepositoryMockRecorder) GetById(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockRepository)(nil).GetById), id)
 }
 
 // Update mocks base method.

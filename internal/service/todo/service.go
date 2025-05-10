@@ -20,5 +20,5 @@ func (s *Service) CreateTodo(todo *entity.Todo) error {
 }
 
 func (s *Service) GetTodo(id int) (*entity.Todo, error) {
-	return s.r.Get(id)
+	return s.r.GetById(id)
 }

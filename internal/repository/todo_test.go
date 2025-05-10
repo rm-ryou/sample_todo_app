@@ -80,7 +80,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestGet(t *testing.T) {
+func TestGetById(t *testing.T) {
 	repo := setup(t)
 
 	testCases := []struct {
@@ -112,7 +112,7 @@ func TestGet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			todo, err := repo.Get(tc.id)
+			todo, err := repo.GetById(tc.id)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedData, todo)
 		})
