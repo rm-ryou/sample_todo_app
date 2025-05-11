@@ -17,6 +17,25 @@ func NewTodo(db *sql.DB) *Todo {
 	}
 }
 
+func (t *Todo) GetById(id int) (*entity.Todo, error) {
+	var todo entity.Todo
+	query := `SELECT * FROM todos WHERE id = ?`
+
+	if err := t.db.QueryRow(query, id).Scan(
+		&todo.Id,
+		&todo.Title,
+		&todo.Done,
+		&todo.Priority,
+		&todo.DueDate,
+		&todo.CreatedAt,
+		&todo.UpdatedAt,
+	); err != nil {
+		return nil, err
+	}
+
+	return &todo, nil
+}
+
 func (t *Todo) Create(todo *entity.Todo) error {
 	query := `INSERT INTO todos (title, done, priority, due_date) VALUES (?, ?, ?, ?)`
 
@@ -34,21 +53,30 @@ func (t *Todo) Create(todo *entity.Todo) error {
 	return nil
 }
 
-func (t *Todo) Get(id int) (*entity.Todo, error) {
-	var todo entity.Todo
-	query := `SELECT * FROM todos WHERE id = ?`
+func (t *Todo) Update(todo *entity.Todo) error {
+	query := `UPDATE todos SET title = ?, done = ?, priority = ?, due_date = ? WHERE id = ?`
 
-	if err := t.db.QueryRow(query, id).Scan(
-		&todo.Id,
-		&todo.Title,
-		&todo.Done,
-		&todo.Priority,
-		&todo.DueDate,
-		&todo.CreatedAt,
-		&todo.UpdatedAt,
-	); err != nil {
-		return nil, err
+	stmt, err := t.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(todo.Title, todo.Done, todo.Priority, todo.DueDate, todo.Id)
+	if err != nil {
+		return err
 	}
 
-	return &todo, nil
+	return nil
+}
+
+func (t *Todo) Delete(id int) error {
+	query := `DELETE FROM todos WHERE id = ?`
+
+	_, err := t.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

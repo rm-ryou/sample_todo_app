@@ -21,7 +21,7 @@ func NewTodo(s todo.Servicer) *Todo {
 	}
 }
 
-func (t *Todo) CreateTodo(w http.ResponseWriter, r *http.Request) {
+func (t *Todo) Create(w http.ResponseWriter, r *http.Request) {
 	todo := &entity.Todo{}
 
 	if err := json.NewDecoder(r.Body).Decode(todo); err != nil {
@@ -62,4 +62,55 @@ func (t *Todo) GetById(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(todo); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, err)
 	}
+}
+
+func (t *Todo) Update(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	todo := &entity.Todo{}
+	if err := json.NewDecoder(r.Body).Decode(todo); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+	todo.Id = id
+
+	err = t.s.UpdateTodo(todo)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ErrorResponse(w, http.StatusNotFound, err)
+			return
+		}
+		ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	CommonResponse(w, 200, "OK")
+}
+
+func (t *Todo) Delete(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = t.s.DeleteTodo(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ErrorResponse(w, http.StatusNotFound, err)
+			return
+		}
+		ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	CommonResponse(w, 200, "OK")
 }

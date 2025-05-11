@@ -80,7 +80,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestGet(t *testing.T) {
+func TestGetById(t *testing.T) {
 	repo := setup(t)
 
 	testCases := []struct {
@@ -112,9 +112,118 @@ func TestGet(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			todo, err := repo.Get(tc.id)
+			todo, err := repo.GetById(tc.id)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedData, todo)
+		})
+	}
+}
+
+func insertDummyTodo(t *testing.T, repo *Todo, todo *entity.Todo) int {
+	query := "INSERT INTO todos (title, done, priority) VALUES (?, ?, ?)"
+	res, err := repo.db.Exec(query, todo.Title, todo.Done, todo.Priority)
+	require.NoError(t, err)
+	insertedId, err := res.LastInsertId()
+	require.NoError(t, err)
+
+	return int(insertedId)
+}
+
+func assertTodoContents(t *testing.T, repo *Todo, expected *entity.Todo, id int) {
+	t.Helper()
+
+	var actual entity.Todo
+	query := "SELECT id, title, done, priority FROM todos WHERE id = ?"
+	err := repo.db.QueryRow(query, id).
+		Scan(&actual.Id, &actual.Title, &actual.Done, &actual.Priority)
+	require.NoError(t, err)
+
+	assert.Equal(t, expected.Title, actual.Title)
+	assert.Equal(t, expected.Done, actual.Done)
+	assert.Equal(t, expected.Priority, actual.Priority)
+	assert.Equal(t, expected.DueDate, actual.DueDate)
+}
+
+func TestUpdate(t *testing.T) {
+	repo := setup(t)
+	baseData := &entity.Todo{
+		Title:    "Test Title!",
+		Done:     false,
+		Priority: 1,
+	}
+
+	t.Run("Success to update todo", func(t *testing.T) {
+		insertedId := insertDummyTodo(t, repo, baseData)
+		updateData := &entity.Todo{
+			Id:       insertedId,
+			Title:    "Updated Title",
+			Done:     true,
+			Priority: 0,
+		}
+
+		err := repo.Update(updateData)
+
+		assert.Equal(t, nil, err)
+		assertTodoContents(t, repo, updateData, insertedId)
+
+		t.Cleanup(func() {
+			query := `DELETE FROM todos WHERE id = ?`
+			_, err := repo.db.Exec(query, insertedId)
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("No changed when not exist Id", func(t *testing.T) {
+		_ = insertDummyTodo(t, repo, baseData)
+		updateData := &entity.Todo{
+			Id:       999,
+			Title:    "Updated Title",
+			Done:     true,
+			Priority: 0,
+		}
+
+		err := repo.Update(updateData)
+
+		assert.Equal(t, nil, err)
+	})
+}
+
+func TestDelete(t *testing.T) {
+	repo := setup(t)
+	initialRows := fetchTodoRows(t, repo)
+	insertedId := insertDummyTodo(t, repo, &entity.Todo{})
+
+	testCases := []struct {
+		name               string
+		deleteId           int
+		expectedBeforeRows int
+		expectedAfterRows  int
+		expectedError      error
+	}{
+		{
+			name:               "Success to Delete todo",
+			deleteId:           insertedId,
+			expectedBeforeRows: initialRows + 1,
+			expectedAfterRows:  initialRows,
+			expectedError:      nil,
+		},
+		{
+			name:               "No Error when not exist Id",
+			deleteId:           999,
+			expectedBeforeRows: initialRows,
+			expectedAfterRows:  initialRows,
+			expectedError:      nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expectedBeforeRows, fetchTodoRows(t, repo))
+
+			err := repo.Delete(tc.deleteId)
+
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedAfterRows, fetchTodoRows(t, repo))
 		})
 	}
 }

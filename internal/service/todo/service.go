@@ -20,5 +20,26 @@ func (s *Service) CreateTodo(todo *entity.Todo) error {
 }
 
 func (s *Service) GetTodo(id int) (*entity.Todo, error) {
-	return s.r.Get(id)
+	return s.r.GetById(id)
+}
+
+func (s *Service) UpdateTodo(todo *entity.Todo) error {
+	_, err := s.r.GetById(todo.Id)
+	if err != nil {
+		return err
+	}
+
+	if err := todo.Validate(); err != nil {
+		return err
+	}
+	return s.r.Update(todo)
+}
+
+func (s *Service) DeleteTodo(id int) error {
+	_, err := s.r.GetById(id)
+	if err != nil {
+		return err
+	}
+
+	return s.r.Delete(id)
 }
