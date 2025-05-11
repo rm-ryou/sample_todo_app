@@ -20,4 +20,6 @@ type Repository interface {
 type Servicer interface {
 	GetTodo(id int) (*entity.Todo, error)
 	CreateTodo(todo *entity.Todo) error
+	UpdateTodo(todo *entity.Todo) error
+	DeleteTodo(id int) error
 }
