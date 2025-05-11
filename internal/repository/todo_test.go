@@ -118,3 +118,56 @@ func TestGetById(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdate(t *testing.T) {
+}
+
+func insertDummyTodo(t *testing.T, repo *Todo) int {
+	res, err := repo.db.Exec("INSERT INTO todos (title) VALUES (?)",
+		"For Delete")
+	require.NoError(t, err)
+	insertedId, err := res.LastInsertId()
+	require.NoError(t, err)
+
+	return int(insertedId)
+}
+
+func TestDelete(t *testing.T) {
+	repo := setup(t)
+	initialRows := fetchTodoRows(t, repo)
+	insertedId := insertDummyTodo(t, repo)
+
+	testCases := []struct {
+		name               string
+		deleteId           int
+		expectedBeforeRows int
+		expectedAfterRows  int
+		expectedError      error
+	}{
+		{
+			name:               "Suucess to Delete todo",
+			deleteId:           insertedId,
+			expectedBeforeRows: initialRows + 1,
+			expectedAfterRows:  initialRows,
+			expectedError:      nil,
+		},
+		{
+			name:               "No Error when not exist Id",
+			deleteId:           999,
+			expectedBeforeRows: initialRows,
+			expectedAfterRows:  initialRows,
+			expectedError:      nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expectedBeforeRows, fetchTodoRows(t, repo))
+
+			err := repo.Delete(tc.deleteId)
+
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedAfterRows, fetchTodoRows(t, repo))
+		})
+	}
+}
