@@ -54,9 +54,29 @@ func (t *Todo) Create(todo *entity.Todo) error {
 }
 
 func (t *Todo) Update(todo *entity.Todo) error {
+	query := `UPDATE todos SET title = ?, done = ?, priority = ?, due_date = ? WHERE id = ?`
+
+	stmt, err := t.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(todo.Title, todo.Done, todo.Priority, todo.DueDate, todo.Id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (t *Todo) Delete(id int) error {
+	query := `DELETE FROM todos WHERE id = ?`
+
+	_, err := t.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
