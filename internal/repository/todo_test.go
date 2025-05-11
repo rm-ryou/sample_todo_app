@@ -201,7 +201,7 @@ func TestDelete(t *testing.T) {
 		expectedError      error
 	}{
 		{
-			name:               "Suucess to Delete todo",
+			name:               "Success to Delete todo",
 			deleteId:           insertedId,
 			expectedBeforeRows: initialRows + 1,
 			expectedAfterRows:  initialRows,
