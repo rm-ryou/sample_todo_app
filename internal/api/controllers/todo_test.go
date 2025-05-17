@@ -17,6 +17,102 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestGetAll(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mock_service.NewMockTodoServicer(ctrl)
+	controller := NewTodoController(mockService)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v1/todos/", controller.GetAll)
+
+	testCases := []struct {
+		name           string
+		setupMock      func()
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name: "Success to Get all todo",
+			setupMock: func() {
+				mockService.EXPECT().GetAll().
+					Return([]*entities.Todo{
+						{
+							Id:        1,
+							Title:     "test",
+							Done:      false,
+							Priority:  1,
+							DueDate:   nil,
+							CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+							UpdatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+						},
+						{
+							Id:        2,
+							Title:     "done task",
+							Done:      true,
+							Priority:  0,
+							DueDate:   nil,
+							CreatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+							UpdatedAt: time.Date(2025, 5, 1, 10, 0, 0, 0, time.UTC),
+						},
+					}, nil)
+			},
+			expectedStatus: 200,
+			expectedBody: `[
+				{
+					"id":1,
+					"title":"test",
+					"done":false,
+					"priority":1,
+					"created_at":"2025-01-01T10:00:00Z",
+					"updated_at":"2025-01-01T10:00:00Z"
+				},
+				{
+					"id":2,
+					"title":"done task",
+					"done":true,
+					"priority":0,
+					"created_at":"2025-04-01T10:00:00Z",
+					"updated_at":"2025-05-01T10:00:00Z"
+				}
+			]`,
+		},
+		{
+			name: "Failed with not found - Due to no rows in db",
+			setupMock: func() {
+				mockService.EXPECT().GetAll().
+					Return(nil, nil)
+			},
+			expectedStatus: 404,
+			expectedBody:   `{"message":"Not Found"}`,
+		},
+		{
+			name: "Failed with internal server error - Due to unexpected errors",
+			setupMock: func() {
+				mockService.EXPECT().GetAll().
+					Return(nil, errors.New("unexpected error"))
+			},
+			expectedStatus: 500,
+			expectedBody:   `{"message":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setupMock()
+
+			req := httptest.NewRequest(http.MethodGet, "/v1/todos/", nil)
+			res := httptest.NewRecorder()
+
+			mux.ServeHTTP(res, req)
+
+			assert.Equal(t, tc.expectedStatus, res.Code)
+			assert.JSONEq(t, tc.expectedBody, res.Body.String())
+		})
+	}
+}
+
 func TestGetById(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
