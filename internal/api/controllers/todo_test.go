@@ -1,4 +1,4 @@
-package handler
+package controllers
 
 import (
 	"bytes"
@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rm-ryou/sample_todo_app/internal/entity"
-	mock_service "github.com/rm-ryou/sample_todo_app/internal/service/todo/mock"
+	"github.com/rm-ryou/sample_todo_app/internal/entities"
+	mock_service "github.com/rm-ryou/sample_todo_app/internal/interfaces/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -21,7 +21,11 @@ func TestGetById(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := mock_service.NewMockServicer(ctrl)
+	mockService := mock_service.NewMockTodoServicer(ctrl)
+	controller := NewTodoController(mockService)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v1/todos/{id}", controller.GetById)
 
 	testCases := []struct {
 		name           string
@@ -35,7 +39,7 @@ func TestGetById(t *testing.T) {
 			idParam: "1",
 			setupMock: func() {
 				mockService.EXPECT().GetById(1).
-					Return(&entity.Todo{
+					Return(&entities.Todo{
 						Id:        1,
 						Title:     "test",
 						Done:      false,
@@ -87,10 +91,6 @@ func TestGetById(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setupMock()
-			handler := NewTodo(mockService)
-
-			mux := http.NewServeMux()
-			mux.HandleFunc("GET /v1/todos/{id}", handler.GetById)
 
 			req := httptest.NewRequest(http.MethodGet, "/v1/todos/"+tc.idParam, nil)
 			res := httptest.NewRecorder()
@@ -107,7 +107,11 @@ func TestCreate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := mock_service.NewMockServicer(ctrl)
+	mockService := mock_service.NewMockTodoServicer(ctrl)
+	controller := NewTodoController(mockService)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /v1/todos", controller.Create)
 
 	testCases := []struct {
 		name           string
@@ -118,35 +122,25 @@ func TestCreate(t *testing.T) {
 	}{
 		{
 			name:        "Success to Create new todo",
-			requestBody: `{"title":"TestTodo"}`,
+			requestBody: `{"title":"TestTodo","done":false,"priority":0}`,
 			setupMock: func() {
-				mockService.EXPECT().Create(gomock.Any()).Return(nil)
+				mockService.EXPECT().Create("TestTodo", false, 0, nil).Return(nil)
 			},
 			expectedStatus: 200,
 			expectedBody:   `{"message":"OK"}`,
 		},
 		{
-			name:        "Failed with bad request - Due to number of characters in the title is more than 50",
-			requestBody: fmt.Sprintf(`{"title":"%s"}`, strings.Repeat("a", 51)),
-			setupMock: func() {
-				mockService.EXPECT().Create(gomock.Any()).
-					// FIXME: use custom error
-					Return(errors.New("Title must be 50 characters or less"))
-			},
-			// TODO: response 400 error
-			expectedStatus: 500,
-			expectedBody:   `{"message":"Internal Server Error"}`,
+			name:           "Failed with bad request - Due to number of characters in the title is more than 50",
+			requestBody:    fmt.Sprintf(`{"title":"%s"}`, strings.Repeat("a", 51)),
+			setupMock:      func() {},
+			expectedStatus: 400,
+			expectedBody:   `{"message":"Bad Request"}`,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setupMock()
-			handler := NewTodo(mockService)
-
-			mux := http.NewServeMux()
-			mux.HandleFunc("POST /v1/todos", handler.Create)
-
 			body := bytes.NewBufferString(tc.requestBody)
 			req := httptest.NewRequest(http.MethodPost, "/v1/todos", body)
 			res := httptest.NewRecorder()
@@ -163,7 +157,11 @@ func TestUpdate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := mock_service.NewMockServicer(ctrl)
+	mockService := mock_service.NewMockTodoServicer(ctrl)
+	controller := NewTodoController(mockService)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("PUT /v1/todos/{id}", controller.Update)
 
 	testCases := []struct {
 		name           string
@@ -176,13 +174,9 @@ func TestUpdate(t *testing.T) {
 		{
 			name:        "Success to Update todo",
 			idParam:     "1",
-			requestBody: `{"title":"UpdateTitle!"}`,
+			requestBody: `{"title":"UpdateTitle!","done":true,"priority":0}`,
 			setupMock: func() {
-				paramTodo := &entity.Todo{
-					Id:    1,
-					Title: "UpdateTitle!",
-				}
-				mockService.EXPECT().Update(paramTodo).
+				mockService.EXPECT().Update(1, "UpdateTitle!", true, 0, nil).
 					Return(nil)
 			},
 			expectedStatus: 200,
@@ -197,15 +191,19 @@ func TestUpdate(t *testing.T) {
 			expectedBody:   `{"message":"Bad Request"}`,
 		},
 		{
+			name:           "Failed with bad request - Due to number of characters in the title is more than 50",
+			idParam:        "1",
+			requestBody:    fmt.Sprintf(`{"title":"%s"}`, strings.Repeat("a", 51)),
+			setupMock:      func() {},
+			expectedStatus: 400,
+			expectedBody:   `{"message":"Bad Request"}`,
+		},
+		{
 			name:        "Failed with not found - Due to no todo with id",
 			idParam:     "999",
-			requestBody: `{"title":"UpdateTitle!"}`,
+			requestBody: `{"title":"UpdateTitle!","done":false,"priority":1}`,
 			setupMock: func() {
-				paramTodo := &entity.Todo{
-					Id:    999,
-					Title: "UpdateTitle!",
-				}
-				mockService.EXPECT().Update(paramTodo).
+				mockService.EXPECT().Update(999, "UpdateTitle!", false, 1, nil).
 					Return(sql.ErrNoRows)
 			},
 			expectedStatus: 404,
@@ -214,13 +212,9 @@ func TestUpdate(t *testing.T) {
 		{
 			name:        "Failed with internal server error - Due to unexpected errors",
 			idParam:     "1",
-			requestBody: `{"title":"UpdateTitle!"}`,
+			requestBody: `{"title":"UpdateTitle!","done":false,"priority":1}`,
 			setupMock: func() {
-				paramTodo := &entity.Todo{
-					Id:    1,
-					Title: "UpdateTitle!",
-				}
-				mockService.EXPECT().Update(paramTodo).
+				mockService.EXPECT().Update(1, "UpdateTitle!", false, 1, nil).
 					Return(errors.New("unexpected error"))
 			},
 			expectedStatus: 500,
@@ -231,11 +225,6 @@ func TestUpdate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setupMock()
-			handler := NewTodo(mockService)
-
-			mux := http.NewServeMux()
-			mux.HandleFunc("PUT /v1/todos/{id}", handler.Update)
-
 			body := bytes.NewBufferString(tc.requestBody)
 			req := httptest.NewRequest(http.MethodPut, "/v1/todos/"+tc.idParam, body)
 			res := httptest.NewRecorder()
@@ -252,7 +241,11 @@ func TestDelete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockService := mock_service.NewMockServicer(ctrl)
+	mockService := mock_service.NewMockTodoServicer(ctrl)
+	controller := NewTodoController(mockService)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("DELETE /v1/todos/{id}", controller.Delete)
 
 	testCases := []struct {
 		name           string
@@ -303,10 +296,6 @@ func TestDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setupMock()
-			handler := NewTodo(mockService)
-
-			mux := http.NewServeMux()
-			mux.HandleFunc("DELETE /v1/todos/{id}", handler.Delete)
 
 			req := httptest.NewRequest(http.MethodDelete, "/v1/todos/"+tc.idParam, nil)
 			res := httptest.NewRecorder()
