@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"database/sql"
@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/rm-ryou/sample_todo_app/internal/config"
-	"github.com/rm-ryou/sample_todo_app/internal/entity"
+	"github.com/rm-ryou/sample_todo_app/internal/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setup(t *testing.T) *Todo {
+func setup(t *testing.T) *TodoRepository {
 	cfg := config.DB{
 		Database: MYSQL_DATABASE,
 		User:     MYSQL_USER,
@@ -23,10 +23,10 @@ func setup(t *testing.T) *Todo {
 	db, err := SetupConnection(cfg)
 	require.NoError(t, err)
 
-	return NewTodo(db)
+	return NewTodoRepository(db)
 }
 
-func fetchTodoRows(t *testing.T, repo *Todo) int {
+func fetchTodoRows(t *testing.T, repo *TodoRepository) int {
 	var todoRows int
 
 	query := "SELECT COUNT(*) FROM todos"
@@ -42,13 +42,13 @@ func TestCreate(t *testing.T) {
 
 	testCases := []struct {
 		name             string
-		todo             *entity.Todo
+		todo             *entities.Todo
 		expectedTodoRows int
 		expectedError    error
 	}{
 		{
 			name: "Success to Create todo",
-			todo: &entity.Todo{
+			todo: &entities.Todo{
 				Title:    "Test!!",
 				Done:     false,
 				Priority: 1,
@@ -87,13 +87,13 @@ func TestGetById(t *testing.T) {
 		name          string
 		id            int
 		expectedError error
-		expectedData  *entity.Todo
+		expectedData  *entities.Todo
 	}{
 		{
 			name:          "Success to Get todo",
 			id:            1,
 			expectedError: nil,
-			expectedData: &entity.Todo{
+			expectedData: &entities.Todo{
 				Id:        1,
 				Title:     "Test Task",
 				Done:      false,
@@ -119,7 +119,7 @@ func TestGetById(t *testing.T) {
 	}
 }
 
-func insertDummyTodo(t *testing.T, repo *Todo, todo *entity.Todo) int {
+func insertDummyTodo(t *testing.T, repo *TodoRepository, todo *entities.Todo) int {
 	query := "INSERT INTO todos (title, done, priority) VALUES (?, ?, ?)"
 	res, err := repo.db.Exec(query, todo.Title, todo.Done, todo.Priority)
 	require.NoError(t, err)
@@ -129,10 +129,10 @@ func insertDummyTodo(t *testing.T, repo *Todo, todo *entity.Todo) int {
 	return int(insertedId)
 }
 
-func assertTodoContents(t *testing.T, repo *Todo, expected *entity.Todo, id int) {
+func assertTodoContents(t *testing.T, repo *TodoRepository, expected *entities.Todo, id int) {
 	t.Helper()
 
-	var actual entity.Todo
+	var actual entities.Todo
 	query := "SELECT id, title, done, priority FROM todos WHERE id = ?"
 	err := repo.db.QueryRow(query, id).
 		Scan(&actual.Id, &actual.Title, &actual.Done, &actual.Priority)
@@ -146,7 +146,7 @@ func assertTodoContents(t *testing.T, repo *Todo, expected *entity.Todo, id int)
 
 func TestUpdate(t *testing.T) {
 	repo := setup(t)
-	baseData := &entity.Todo{
+	baseData := &entities.Todo{
 		Title:    "Test Title!",
 		Done:     false,
 		Priority: 1,
@@ -154,7 +154,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("Success to update todo", func(t *testing.T) {
 		insertedId := insertDummyTodo(t, repo, baseData)
-		updateData := &entity.Todo{
+		updateData := &entities.Todo{
 			Id:       insertedId,
 			Title:    "Updated Title",
 			Done:     true,
@@ -175,7 +175,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("No changed when not exist Id", func(t *testing.T) {
 		_ = insertDummyTodo(t, repo, baseData)
-		updateData := &entity.Todo{
+		updateData := &entities.Todo{
 			Id:       999,
 			Title:    "Updated Title",
 			Done:     true,
@@ -191,7 +191,7 @@ func TestUpdate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	repo := setup(t)
 	initialRows := fetchTodoRows(t, repo)
-	insertedId := insertDummyTodo(t, repo, &entity.Todo{})
+	insertedId := insertDummyTodo(t, repo, &entities.Todo{})
 
 	testCases := []struct {
 		name               string

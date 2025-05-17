@@ -30,7 +30,6 @@ func todoMux(db *sql.DB) *http.ServeMux {
 	controller := NewTodoController(service)
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /v1/todos/", http.HandlerFunc(controller.GetAll))
 	mux.Handle("GET /v1/todos/{id}", http.HandlerFunc(controller.GetById))
 	mux.Handle("POST /v1/todos/", http.HandlerFunc(controller.Create))
 	mux.Handle("PUT /v1/todos/{id}", http.HandlerFunc(controller.Update))

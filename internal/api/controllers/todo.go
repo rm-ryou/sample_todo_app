@@ -22,24 +22,6 @@ func NewTodoController(service interfaces.TodoServicer) *TodoController {
 	}
 }
 
-func (tc *TodoController) GetAll(w http.ResponseWriter, r *http.Request) {
-	todos, err := tc.service.GetAll()
-	if err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	if todos == nil {
-		ErrorResponse(w, http.StatusNotFound, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(todos); err != nil {
-		ErrorResponse(w, http.StatusInternalServerError, err)
-	}
-}
-
 func (tc *TodoController) GetById(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 

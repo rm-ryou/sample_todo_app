@@ -17,10 +17,6 @@ func NewTodoService(repo interfaces.TodoRepository) *TodoService {
 	}
 }
 
-func (ts *TodoService) GetAll() ([]*entities.Todo, error) {
-	return ts.repo.GetAll()
-}
-
 func (ts *TodoService) GetById(id int) (*entities.Todo, error) {
 	return ts.repo.GetById(id)
 }
