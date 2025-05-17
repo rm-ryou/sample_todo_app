@@ -21,24 +21,6 @@ func NewTodo(s todo.Servicer) *Todo {
 	}
 }
 
-func (t *Todo) Create(w http.ResponseWriter, r *http.Request) {
-	todo := &entity.Todo{}
-
-	if err := json.NewDecoder(r.Body).Decode(todo); err != nil {
-		ErrorResponse(w, http.StatusBadRequest, err)
-		return
-	}
-
-	err := t.s.CreateTodo(todo)
-	if err != nil {
-		// TODO: エラーの内容によってステータスコードを変えられるような構造体の定義
-		ErrorResponse(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	CommonResponse(w, 200, "OK")
-}
-
 func (t *Todo) GetById(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 
@@ -48,7 +30,7 @@ func (t *Todo) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todo, err := t.s.GetTodo(id)
+	todo, err := t.s.GetById(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ErrorResponse(w, http.StatusNotFound, err)
@@ -62,6 +44,24 @@ func (t *Todo) GetById(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(todo); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, err)
 	}
+}
+
+func (t *Todo) Create(w http.ResponseWriter, r *http.Request) {
+	todo := &entity.Todo{}
+
+	if err := json.NewDecoder(r.Body).Decode(todo); err != nil {
+		ErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err := t.s.Create(todo)
+	if err != nil {
+		// TODO: エラーの内容によってステータスコードを変えられるような構造体の定義
+		ErrorResponse(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	CommonResponse(w, 200, "OK")
 }
 
 func (t *Todo) Update(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,7 @@ func (t *Todo) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	todo.Id = id
 
-	err = t.s.UpdateTodo(todo)
+	err = t.s.Update(todo)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ErrorResponse(w, http.StatusNotFound, err)
@@ -102,7 +102,7 @@ func (t *Todo) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = t.s.DeleteTodo(id)
+	err = t.s.Delete(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ErrorResponse(w, http.StatusNotFound, err)

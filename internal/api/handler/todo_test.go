@@ -17,62 +17,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestCreateTodo(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockService := mock_service.NewMockServicer(ctrl)
-
-	testCases := []struct {
-		name           string
-		requestBody    string
-		setupMock      func()
-		expectedStatus int
-		expectedBody   string
-	}{
-		{
-			name:        "Success to Create new todo",
-			requestBody: `{"title":"TestTodo"}`,
-			setupMock: func() {
-				mockService.EXPECT().CreateTodo(gomock.Any()).Return(nil)
-			},
-			expectedStatus: 200,
-			expectedBody:   `{"message":"OK"}`,
-		},
-		{
-			name:        "Failed with bad request - Due to number of characters in the title is more than 50",
-			requestBody: fmt.Sprintf(`{"title":"%s"}`, strings.Repeat("a", 51)),
-			setupMock: func() {
-				mockService.EXPECT().CreateTodo(gomock.Any()).
-					// FIXME: use custom error
-					Return(errors.New("Title must be 50 characters or less"))
-			},
-			// TODO: response 400 error
-			expectedStatus: 500,
-			expectedBody:   `{"message":"Internal Server Error"}`,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.setupMock()
-			handler := NewTodo(mockService)
-
-			mux := http.NewServeMux()
-			mux.HandleFunc("POST /v1/todos", handler.Create)
-
-			body := bytes.NewBufferString(tc.requestBody)
-			req := httptest.NewRequest(http.MethodPost, "/v1/todos", body)
-			res := httptest.NewRecorder()
-
-			mux.ServeHTTP(res, req)
-
-			assert.Equal(t, tc.expectedStatus, res.Code)
-			assert.JSONEq(t, tc.expectedBody, res.Body.String())
-		})
-	}
-}
-
 func TestGetById(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -90,7 +34,7 @@ func TestGetById(t *testing.T) {
 			name:    "Success to Get todo",
 			idParam: "1",
 			setupMock: func() {
-				mockService.EXPECT().GetTodo(1).
+				mockService.EXPECT().GetById(1).
 					Return(&entity.Todo{
 						Id:        1,
 						Title:     "test",
@@ -122,7 +66,7 @@ func TestGetById(t *testing.T) {
 			name:    "Failed with not found - Due to no todo with id",
 			idParam: "999",
 			setupMock: func() {
-				mockService.EXPECT().GetTodo(999).
+				mockService.EXPECT().GetById(999).
 					Return(nil, sql.ErrNoRows)
 			},
 			expectedStatus: 404,
@@ -132,7 +76,7 @@ func TestGetById(t *testing.T) {
 			name:    "Failed with internal server error - Due to unexpected errors",
 			idParam: "1",
 			setupMock: func() {
-				mockService.EXPECT().GetTodo(1).
+				mockService.EXPECT().GetById(1).
 					Return(nil, errors.New("unexpected error"))
 			},
 			expectedStatus: 500,
@@ -149,6 +93,62 @@ func TestGetById(t *testing.T) {
 			mux.HandleFunc("GET /v1/todos/{id}", handler.GetById)
 
 			req := httptest.NewRequest(http.MethodGet, "/v1/todos/"+tc.idParam, nil)
+			res := httptest.NewRecorder()
+
+			mux.ServeHTTP(res, req)
+
+			assert.Equal(t, tc.expectedStatus, res.Code)
+			assert.JSONEq(t, tc.expectedBody, res.Body.String())
+		})
+	}
+}
+
+func TestCreate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockService := mock_service.NewMockServicer(ctrl)
+
+	testCases := []struct {
+		name           string
+		requestBody    string
+		setupMock      func()
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name:        "Success to Create new todo",
+			requestBody: `{"title":"TestTodo"}`,
+			setupMock: func() {
+				mockService.EXPECT().Create(gomock.Any()).Return(nil)
+			},
+			expectedStatus: 200,
+			expectedBody:   `{"message":"OK"}`,
+		},
+		{
+			name:        "Failed with bad request - Due to number of characters in the title is more than 50",
+			requestBody: fmt.Sprintf(`{"title":"%s"}`, strings.Repeat("a", 51)),
+			setupMock: func() {
+				mockService.EXPECT().Create(gomock.Any()).
+					// FIXME: use custom error
+					Return(errors.New("Title must be 50 characters or less"))
+			},
+			// TODO: response 400 error
+			expectedStatus: 500,
+			expectedBody:   `{"message":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setupMock()
+			handler := NewTodo(mockService)
+
+			mux := http.NewServeMux()
+			mux.HandleFunc("POST /v1/todos", handler.Create)
+
+			body := bytes.NewBufferString(tc.requestBody)
+			req := httptest.NewRequest(http.MethodPost, "/v1/todos", body)
 			res := httptest.NewRecorder()
 
 			mux.ServeHTTP(res, req)
@@ -182,7 +182,7 @@ func TestUpdate(t *testing.T) {
 					Id:    1,
 					Title: "UpdateTitle!",
 				}
-				mockService.EXPECT().UpdateTodo(paramTodo).
+				mockService.EXPECT().Update(paramTodo).
 					Return(nil)
 			},
 			expectedStatus: 200,
@@ -205,7 +205,7 @@ func TestUpdate(t *testing.T) {
 					Id:    999,
 					Title: "UpdateTitle!",
 				}
-				mockService.EXPECT().UpdateTodo(paramTodo).
+				mockService.EXPECT().Update(paramTodo).
 					Return(sql.ErrNoRows)
 			},
 			expectedStatus: 404,
@@ -220,7 +220,7 @@ func TestUpdate(t *testing.T) {
 					Id:    1,
 					Title: "UpdateTitle!",
 				}
-				mockService.EXPECT().UpdateTodo(paramTodo).
+				mockService.EXPECT().Update(paramTodo).
 					Return(errors.New("unexpected error"))
 			},
 			expectedStatus: 500,
@@ -265,7 +265,7 @@ func TestDelete(t *testing.T) {
 			name:    "Success to Delete todo",
 			idParam: "1",
 			setupMock: func() {
-				mockService.EXPECT().DeleteTodo(1).
+				mockService.EXPECT().Delete(1).
 					Return(nil)
 			},
 			expectedStatus: 200,
@@ -282,7 +282,7 @@ func TestDelete(t *testing.T) {
 			name:    "Failed with not found - Due to no todo with id",
 			idParam: "999",
 			setupMock: func() {
-				mockService.EXPECT().DeleteTodo(999).
+				mockService.EXPECT().Delete(999).
 					Return(sql.ErrNoRows)
 			},
 			expectedStatus: 404,
@@ -292,7 +292,7 @@ func TestDelete(t *testing.T) {
 			name:    "Failed with internal server error - Due to unexpected errors",
 			idParam: "1",
 			setupMock: func() {
-				mockService.EXPECT().DeleteTodo(1).
+				mockService.EXPECT().Delete(1).
 					Return(errors.New("unexpected error"))
 			},
 			expectedStatus: 500,

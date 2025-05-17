@@ -61,7 +61,7 @@ func TestUpdateTodo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.mockSetup(tc.todo)
 
-			err := service.UpdateTodo(tc.todo)
+			err := service.Update(tc.todo)
 
 			assert.Equal(t, tc.expectedError, err)
 		})
@@ -107,7 +107,7 @@ func TestDeleteTodo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.mockSetup()
 
-			err := service.DeleteTodo(tc.id)
+			err := service.Delete(tc.id)
 
 			assert.Equal(t, tc.expectedError, err)
 		})
