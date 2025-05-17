@@ -9,18 +9,3 @@ CREATE TABLE IF NOT EXISTS `todos` (
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=INNODB;
-
--- Insert test data
-INSERT INTO `todos` (
-  `title`,
-  `done`,
-  `priority`,
-  `created_at`,
-  `updated_at`
-) VALUES (
-  "Test Task",
-  FALSE,
-  3,
-  "2025-05-01 10:00:00",
-  "2025-05-01 10:00:00"
-);
