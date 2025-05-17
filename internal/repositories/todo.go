@@ -20,19 +20,19 @@ func NewTodoRepository(db *sql.DB) *TodoRepository {
 func (tr *TodoRepository) GetById(id int) (*entities.Todo, error) {
 	var todo entities.Todo
 	query := `
-	SELECT
-		id,
-		title,
-		done,
-		priority,
-		due_date,
-		created_at,
-		updated_at
-	FROM
-		todos
-	WHERE
-		id = ?
-	`
+          SELECT
+            id,
+            title,
+            done,
+            priority,
+            due_date,
+            created_at,
+            updated_at
+            FROM
+            todos
+          WHERE
+            id = ?
+        `
 
 	if err := tr.db.QueryRow(query, id).Scan(
 		&todo.Id,
