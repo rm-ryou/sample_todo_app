@@ -1,4 +1,4 @@
-package entity
+package entities
 
 import (
 	"errors"
@@ -35,7 +35,7 @@ func TestValidate(t *testing.T) {
 				Priority: 1,
 				DueDate:  &now,
 			},
-			expectedError: errors.New("Title is required"),
+			expectedError: errors.New("Invalid title"),
 		},
 		{
 			name: "Failed to validate - Due to the title is larger than 50 characters",
@@ -45,7 +45,7 @@ func TestValidate(t *testing.T) {
 				Priority: 1,
 				DueDate:  &now,
 			},
-			expectedError: errors.New("Title must be 50 characters or less"),
+			expectedError: errors.New("Invalid title"),
 		},
 	}
 

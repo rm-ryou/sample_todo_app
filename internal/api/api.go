@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rm-ryou/sample_todo_app/internal/api/router"
+	"github.com/rm-ryou/sample_todo_app/internal/api/controllers"
 	"github.com/rm-ryou/sample_todo_app/internal/config"
-	"github.com/rm-ryou/sample_todo_app/internal/repository"
+	"github.com/rm-ryou/sample_todo_app/internal/repositories"
 )
 
 func Run(cfg *config.Config) {
-	db, err := repository.SetupConnection(cfg.DB)
+	db, err := repositories.SetupConnection(cfg.DB)
 	if err != nil {
 		log.Fatalf("failed to connect db: %v", err)
 	}
@@ -24,7 +24,7 @@ func Run(cfg *config.Config) {
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.Port),
-		Handler: router.New(db),
+		Handler: controllers.InitRoutes(db),
 	}
 
 	go func() {
