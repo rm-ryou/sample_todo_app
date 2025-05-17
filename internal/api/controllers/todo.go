@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/rm-ryou/sample_todo_app/internal/api/controllers/presenter/request"
+	"github.com/rm-ryou/sample_todo_app/internal/api/controllers/presenter/response"
 	"github.com/rm-ryou/sample_todo_app/internal/interfaces"
 )
 
@@ -29,13 +30,9 @@ func (tc *TodoController) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if todos == nil {
-		ErrorResponse(w, http.StatusNotFound, err)
-		return
-	}
-
+	res := response.ConvertoTodosResponse(todos)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(todos); err != nil {
+	if err := json.NewEncoder(w).Encode(res); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, err)
 	}
 }
@@ -59,8 +56,9 @@ func (tc *TodoController) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := response.ConvertTodoResponse(todo)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(todo); err != nil {
+	if err := json.NewEncoder(w).Encode(res); err != nil {
 		ErrorResponse(w, http.StatusInternalServerError, err)
 	}
 }
@@ -80,7 +78,6 @@ func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
 
 	err := tc.service.Create(req.Title, req.Done, req.Priority, req.DueDate)
 	if err != nil {
-		// TODO: エラーの内容によってステータスコードを変えられるような構造体の定義
 		ErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
