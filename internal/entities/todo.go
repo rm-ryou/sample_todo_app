@@ -6,13 +6,13 @@ import (
 )
 
 type Todo struct {
-	Id        int        `json:"id"`
-	Title     string     `json:"title"`
-	Done      bool       `json:"done"`
-	Priority  int        `json:"priority"`
-	DueDate   *time.Time `json:"due_date,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	Id        int
+	Title     string
+	Done      bool
+	Priority  int
+	DueDate   *time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewTodo(title string, done bool, priority int, dueDate *time.Time) *Todo {
