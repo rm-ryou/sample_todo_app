@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import { Todos } from './routes/Todos'
 import { loader as todosLoader } from './apis/todo'
@@ -13,7 +13,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/new',
-        element: '<h1>Hello World!</h1>',
+        element: <h1>Hello World!</h1>,
       },
     ],
   },
