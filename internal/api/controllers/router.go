@@ -6,15 +6,25 @@ import (
 
 	"github.com/rm-ryou/sample_todo_app/internal/repositories"
 	"github.com/rm-ryou/sample_todo_app/internal/services"
+	"github.com/rs/cors"
 )
 
-func InitRoutes(db *sql.DB) *http.ServeMux {
+func InitRoutes(db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("/health", healthCheckMux())
 	mux.Handle("/v1/todos/", todoMux(db))
 
-	return mux
+	c := cors.New(cors.Options{
+		// TODO: fix allow origin
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: true,
+	})
+
+	return c.Handler(mux)
 }
 
 func healthCheckMux() *http.ServeMux {

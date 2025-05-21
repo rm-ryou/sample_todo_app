@@ -1,7 +1,8 @@
-import { Outlet } from 'react-router-dom'
-import { TodosList } from '../components/TodosList'
+import { Outlet } from 'react-router'
 
-export const Todos = () => {
+import TodosList from '../components/TodosList'
+
+const Todos = () => {
   return (
     <>
       <TodosList />
@@ -9,3 +10,5 @@ export const Todos = () => {
     </>
   )
 }
+
+export default Todos
