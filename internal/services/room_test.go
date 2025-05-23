@@ -35,7 +35,7 @@ func TestCreateRoom(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:          "Failed to create room - Due to number of characters in the room is more than 50",
+			name:          "Failed to create room - Due to number of characters in the name is more than 50",
 			roomName:      strings.Repeat("a", 51),
 			mockSetup:     func(room *entities.Room) {},
 			expectedError: errors.New("Invalid name"),
@@ -89,7 +89,7 @@ func TestUpdateRoom(t *testing.T) {
 			expectedError: nil,
 		},
 		{
-			name:     "Failed to update room - Due to the todo not found",
+			name:     "Failed to update room - Due to the room not found",
 			id:       999,
 			roomName: "test room",
 			mockSetup: func(room *entities.Room) {
@@ -109,7 +109,7 @@ func TestUpdateRoom(t *testing.T) {
 			expectedError: errors.New("Invalid name"),
 		},
 		{
-			name:     "Failed to update room - Due to the empty room",
+			name:     "Failed to update room - Due to the empty name",
 			id:       1,
 			roomName: "",
 			mockSetup: func(room *entities.Room) {
