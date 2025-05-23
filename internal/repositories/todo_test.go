@@ -5,42 +5,26 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rm-ryou/sample_todo_app/internal/config"
 	"github.com/rm-ryou/sample_todo_app/internal/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setup(t *testing.T) *TodoRepository {
-	cfg := config.DB{
-		Database: MYSQL_DATABASE,
-		User:     MYSQL_USER,
-		Password: MYSQL_PASSWORD,
-		Host:     MYSQL_HOST,
-		Port:     MYSQL_PORT,
-	}
-
-	db, err := SetupConnection(cfg)
-	require.NoError(t, err)
-
-	return NewTodoRepository(db)
-}
-
-func getTodoCount(t *testing.T, repo *TodoRepository) int {
+func getTodoCount(t *testing.T) int {
 	var count int
 
 	query := "SELECT COUNT(*) FROM todos"
-	err := repo.db.QueryRow(query).Scan(&count)
+	err := TodoRepo.db.QueryRow(query).Scan(&count)
 	require.NoError(t, err)
 
 	return count
 }
 
-func getTodoById(t *testing.T, repo *TodoRepository, id int) *entities.Todo {
+func getTodoById(t *testing.T, id int) *entities.Todo {
 	var todo entities.Todo
 	query := "SELECT * FROM todos WHERE id = ?"
 
-	err := repo.db.QueryRow(query, id).Scan(
+	err := TodoRepo.db.QueryRow(query, id).Scan(
 		&todo.Id,
 		&todo.Title,
 		&todo.Done,
@@ -54,28 +38,26 @@ func getTodoById(t *testing.T, repo *TodoRepository, id int) *entities.Todo {
 	return &todo
 }
 
-func insertDummyTodo(t *testing.T, repo *TodoRepository, todo *entities.Todo) {
+func insertDummyTodo(t *testing.T, todo *entities.Todo) {
 	query := `INSERT INTO todos
 		(id, title, done, priority, due_date, created_at, updated_at)
 	VALUES
 		(?, ?, ?, ?, ?, ?, ?)
 	`
 
-	res, err := repo.db.Exec(query, todo.Id, todo.Title, todo.Done, todo.Priority, todo.DueDate, todo.CreatedAt, todo.UpdatedAt)
+	res, err := TodoRepo.db.Exec(query, todo.Id, todo.Title, todo.Done, todo.Priority, todo.DueDate, todo.CreatedAt, todo.UpdatedAt)
 	require.NoError(t, err)
 	_, err = res.LastInsertId()
 	require.NoError(t, err)
 }
 
-func deleteAllTodos(t *testing.T, repo *TodoRepository) {
+func deleteAllTodos(t *testing.T) {
 	query := "DELETE FROM todos"
-	_, err := repo.db.Exec(query)
+	_, err := TodoRepo.db.Exec(query)
 	require.NoError(t, err)
 }
 
 func TestGetAll(t *testing.T) {
-	repo := setup(t)
-
 	testCases := []struct {
 		name          string
 		savedTodos    []*entities.Todo
@@ -105,7 +87,7 @@ func TestGetAll(t *testing.T) {
 			},
 			setup: func(t *testing.T, todos []*entities.Todo) {
 				for _, todo := range todos {
-					insertDummyTodo(t, repo, todo)
+					insertDummyTodo(t, todo)
 				}
 			},
 			expectedError: nil,
@@ -140,9 +122,9 @@ func TestGetAll(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t, tc.savedTodos)
-			defer deleteAllTodos(t, repo)
+			defer deleteAllTodos(t)
 
-			todo, err := repo.GetAll()
+			todo, err := TodoRepo.GetAll()
 
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedData, todo)
@@ -151,8 +133,6 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetById(t *testing.T) {
-	repo := setup(t)
-
 	testCases := []struct {
 		name          string
 		id            int
@@ -173,7 +153,7 @@ func TestGetById(t *testing.T) {
 				UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 			},
 			setup: func(t *testing.T, todo *entities.Todo) {
-				insertDummyTodo(t, repo, todo)
+				insertDummyTodo(t, todo)
 			},
 			expectedError: nil,
 			expectedData: &entities.Todo{
@@ -198,9 +178,9 @@ func TestGetById(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t, tc.savedTodo)
-			defer deleteAllTodos(t, repo)
+			defer deleteAllTodos(t)
 
-			todo, err := repo.GetById(tc.id)
+			todo, err := TodoRepo.GetById(tc.id)
 
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedData, todo)
@@ -209,8 +189,7 @@ func TestGetById(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	repo := setup(t)
-	beforeCount := getTodoCount(t, repo)
+	beforeCount := getTodoCount(t)
 
 	testCases := []struct {
 		name                string
@@ -232,11 +211,11 @@ func TestCreate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			defer deleteAllTodos(t, repo)
+			defer deleteAllTodos(t)
 
-			err := repo.Create(tc.todo)
+			err := TodoRepo.Create(tc.todo)
 
-			afterCount := getTodoCount(t, repo)
+			afterCount := getTodoCount(t)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedRecordCount, afterCount)
 		})
@@ -255,8 +234,6 @@ func assertTodoHelper(t *testing.T, expected, actual *entities.Todo) {
 }
 
 func TestUpdate(t *testing.T) {
-	repo := setup(t)
-
 	testCases := []struct {
 		name          string
 		savedData     *entities.Todo
@@ -283,7 +260,7 @@ func TestUpdate(t *testing.T) {
 				CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 			},
 			setup: func(t *testing.T, todo *entities.Todo) {
-				insertDummyTodo(t, repo, todo)
+				insertDummyTodo(t, todo)
 			},
 			expectedError: nil,
 			expectedData: &entities.Todo{
@@ -313,13 +290,13 @@ func TestUpdate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t, tc.savedData)
-			defer deleteAllTodos(t, repo)
+			defer deleteAllTodos(t)
 
-			err := repo.Update(tc.updateData)
+			err := TodoRepo.Update(tc.updateData)
 
 			assert.Equal(t, tc.expectedError, err)
 			if tc.expectedData != nil {
-				actual := getTodoById(t, repo, tc.savedData.Id)
+				actual := getTodoById(t, tc.savedData.Id)
 				assertTodoHelper(t, tc.expectedData, actual)
 			}
 		})
@@ -327,7 +304,6 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	repo := setup(t)
 	savedTodo := &entities.Todo{
 		Id:        1,
 		Title:     "done task",
@@ -348,7 +324,7 @@ func TestDelete(t *testing.T) {
 			name:     "Success to Delete todo",
 			deleteId: savedTodo.Id,
 			setup: func(t *testing.T) {
-				insertDummyTodo(t, repo, savedTodo)
+				insertDummyTodo(t, savedTodo)
 			},
 			expectedError:       nil,
 			expectedRecordCount: 0,
@@ -357,7 +333,7 @@ func TestDelete(t *testing.T) {
 			name:     "No Error when not exist Id",
 			deleteId: 999,
 			setup: func(t *testing.T) {
-				insertDummyTodo(t, repo, savedTodo)
+				insertDummyTodo(t, savedTodo)
 			},
 			expectedError:       nil,
 			expectedRecordCount: 1,
@@ -367,11 +343,11 @@ func TestDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t)
-			defer deleteAllTodos(t, repo)
+			defer deleteAllTodos(t)
 
-			err := repo.Delete(tc.deleteId)
+			err := TodoRepo.Delete(tc.deleteId)
 
-			afterCount := getTodoCount(t, repo)
+			afterCount := getTodoCount(t)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedRecordCount, afterCount)
 		})
