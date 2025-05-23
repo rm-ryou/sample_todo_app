@@ -21,6 +21,7 @@ const (
 
 var (
 	RoomRepo   *RoomRepository
+	BoardRepo  *BoardRepository
 	TodoRepo   *TodoRepository
 	MYSQL_HOST string
 	MYSQL_PORT string
@@ -70,6 +71,7 @@ func TestMain(m *testing.M) {
 	defer db.Close()
 
 	RoomRepo = NewRoomRepository(db)
+	BoardRepo = NewBoardRepository(db)
 	TodoRepo = NewTodoRepository(db)
 
 	statusCode := m.Run()
