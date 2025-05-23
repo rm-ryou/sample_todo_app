@@ -163,7 +163,7 @@ func TestGetByIdRoom(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t, tc.savedRoom)
-			defer deleteAllTodos(t)
+			defer deleteAllRooms(t)
 
 			room, err := RoomRepo.GetById(tc.id)
 
