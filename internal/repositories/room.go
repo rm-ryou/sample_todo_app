@@ -47,6 +47,22 @@ func (rr *RoomRepository) GetAll() ([]*entities.Room, error) {
 	return rooms, nil
 }
 
+func (rr *RoomRepository) GetById(id int) (*entities.Room, error) {
+	var room entities.Room
+	query := "SELECT id, name, created_at, updated_at FROM rooms WHERE id = ?"
+
+	if err := rr.db.QueryRow(query, id).Scan(
+		&room.Id,
+		&room.Name,
+		&room.CreatedAt,
+		&room.UpdatedAt,
+	); err != nil {
+		return nil, err
+	}
+
+	return &room, nil
+}
+
 func (rr *RoomRepository) Create(room *entities.Room) error {
 	query := "INSERT INTO rooms (name) VALUES (?)"
 

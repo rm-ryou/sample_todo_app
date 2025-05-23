@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -116,6 +117,58 @@ func TestGetAllRooms(t *testing.T) {
 
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedData, rooms)
+		})
+	}
+}
+
+func TestGetByIdRoom(t *testing.T) {
+	testCases := []struct {
+		name          string
+		id            int
+		savedRoom     *entities.Room
+		setup         func(t *testing.T, room *entities.Room)
+		expectedError error
+		expectedData  *entities.Room
+	}{
+		{
+			name: "Success to Get room",
+			id:   1,
+			savedRoom: &entities.Room{
+				Id:        1,
+				Name:      "test room",
+				CreatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+				UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+			},
+			setup: func(t *testing.T, room *entities.Room) {
+				insertDummyRoom(t, room)
+			},
+			expectedError: nil,
+			expectedData: &entities.Room{
+				Id:        1,
+				Name:      "test room",
+				CreatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+				UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			name:          "Failed to Get room with item not exists",
+			id:            999,
+			savedRoom:     nil,
+			setup:         func(t *testing.T, room *entities.Room) {},
+			expectedError: sql.ErrNoRows,
+			expectedData:  nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setup(t, tc.savedRoom)
+			defer deleteAllTodos(t)
+
+			room, err := RoomRepo.GetById(tc.id)
+
+			assert.Equal(t, tc.expectedError, err)
+			assert.Equal(t, tc.expectedData, room)
 		})
 	}
 }
