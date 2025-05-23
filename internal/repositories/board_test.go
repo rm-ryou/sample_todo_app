@@ -219,7 +219,7 @@ func TestCreateBoard(t *testing.T) {
 		expectedRecordCount int
 	}{
 		{
-			name: "Success to Create room",
+			name: "Success to Create board",
 			board: &entities.Board{
 				Name:     "test board",
 				Priority: 0,
