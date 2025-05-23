@@ -6,6 +6,7 @@ import (
 
 type RoomRepository interface {
 	GetAll() ([]*entities.Room, error)
+	GetById(id int) (*entities.Room, error)
 	Create(room *entities.Room) error
 	Update(room *entities.Room) error
 	Delete(id int) error
