@@ -9,10 +9,12 @@ import (
 	"github.com/rs/cors"
 )
 
+// FIXME: Avoid initializing service, repository, controller in InitRouter
 func InitRoutes(db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("/health", healthCheckMux())
+	mux.Handle("/v1/rooms/", roomMux(db))
 	mux.Handle("/v1/todos/", todoMux(db))
 
 	c := cors.New(cors.Options{
@@ -30,6 +32,20 @@ func InitRoutes(db *sql.DB) http.Handler {
 func healthCheckMux() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.Handle("/health", HealthCheck{})
+
+	return mux
+}
+
+func roomMux(db *sql.DB) *http.ServeMux {
+	repo := repositories.NewRoomRepository(db)
+	service := services.NewRoomService(repo)
+	controller := NewRoomController(service)
+
+	mux := http.NewServeMux()
+	mux.Handle("GET /v1/rooms/", http.HandlerFunc(controller.GetAll))
+	mux.Handle("POST /v1/rooms/", http.HandlerFunc(controller.Create))
+	mux.Handle("PUT /v1/rooms/{id}", http.HandlerFunc(controller.Update))
+	mux.Handle("DELETE /v1/rooms/{id}", http.HandlerFunc(controller.Delete))
 
 	return mux
 }
