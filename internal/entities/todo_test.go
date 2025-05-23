@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidate(t *testing.T) {
+func TestValidateTodo(t *testing.T) {
 	now := time.Now()
 
 	testCases := []struct {

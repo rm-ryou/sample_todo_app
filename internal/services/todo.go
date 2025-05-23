@@ -40,14 +40,10 @@ func (ts *TodoService) Update(id int, title string, done bool, priority int, due
 		return err
 	}
 
-	if err := todo.UpdateTitle(title); err != nil {
+	todo.UpdateAttributes(title, done, priority, dueDate)
+	if err := todo.Validate(); err != nil {
 		return err
 	}
-	todo.UpdateDone(done)
-	if err := todo.UpdatePriority(priority); err != nil {
-		return err
-	}
-	todo.UpdateDueDate(dueDate)
 
 	return ts.repo.Update(todo)
 }
