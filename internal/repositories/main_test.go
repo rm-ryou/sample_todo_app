@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/rm-ryou/sample_todo_app/internal/config"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
 )
@@ -19,6 +20,8 @@ const (
 )
 
 var (
+	RoomRepo   *RoomRepository
+	TodoRepo   *TodoRepository
 	MYSQL_HOST string
 	MYSQL_PORT string
 )
@@ -30,7 +33,7 @@ func TestMain(m *testing.M) {
 		mysql.WithDatabase(MYSQL_DATABASE),
 		mysql.WithUsername(MYSQL_USER),
 		mysql.WithPassword(MYSQL_PASSWORD),
-		mysql.WithScripts(filepath.Join(ROOT_DIR, "testdata/sql", "todos.sql")),
+		mysql.WithScripts(filepath.Join(ROOT_DIR, "testdata/sql", "schema.sql")),
 	)
 	defer func() {
 		if err := testcontainers.TerminateContainer(container); err != nil {
@@ -52,6 +55,22 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to get contaier's port: %v", err)
 	}
 	MYSQL_PORT = port.Port()
+
+	cfg := config.DB{
+		Database: MYSQL_DATABASE,
+		User:     MYSQL_USER,
+		Password: MYSQL_PASSWORD,
+		Host:     MYSQL_HOST,
+		Port:     MYSQL_PORT,
+	}
+	db, err := SetupConnection(cfg)
+	if err != nil {
+		log.Fatalf("failed to connection db: %v", err)
+	}
+	defer db.Close()
+
+	RoomRepo = NewRoomRepository(db)
+	TodoRepo = NewTodoRepository(db)
 
 	statusCode := m.Run()
 	os.Exit(statusCode)
