@@ -163,7 +163,7 @@ func TestGetByIdRoom(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t, tc.savedRoom)
-			defer deleteAllTodos(t)
+			defer deleteAllRooms(t)
 
 			room, err := RoomRepo.GetById(tc.id)
 
@@ -280,6 +280,14 @@ func TestDeleteRoom(t *testing.T) {
 		CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 		UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 	}
+	relatedBoard := &entities.Board{
+		Id:        1,
+		Name:      "test board",
+		Priority:  0,
+		RoomId:    1,
+		CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+	}
 
 	testCases := []struct {
 		name                string
@@ -289,10 +297,11 @@ func TestDeleteRoom(t *testing.T) {
 		expectedRecordCount int
 	}{
 		{
-			name:     "Success to Delete room",
+			name:     "Success to Delete room. the board associated with it is also deleted",
 			deleteId: savedRoom.Id,
 			setup: func(t *testing.T) {
 				insertDummyRoom(t, savedRoom)
+				insertDummyBoard(t, relatedBoard)
 			},
 			expectedError:       nil,
 			expectedRecordCount: 0,
@@ -302,6 +311,7 @@ func TestDeleteRoom(t *testing.T) {
 			deleteId: 999,
 			setup: func(t *testing.T) {
 				insertDummyRoom(t, savedRoom)
+				insertDummyBoard(t, relatedBoard)
 			},
 			expectedError:       nil,
 			expectedRecordCount: 1,
@@ -312,12 +322,15 @@ func TestDeleteRoom(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setup(t)
 			defer deleteAllRooms(t)
+			defer deleteAllBoards(t)
 
 			err := RoomRepo.Delete(tc.deleteId)
 
-			afterCount := getRoomCount(t)
+			afterRoomCount := getRoomCount(t)
+			afterBoardCount := getBoardCount(t)
 			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedRecordCount, afterCount)
+			assert.Equal(t, tc.expectedRecordCount, afterRoomCount)
+			assert.Equal(t, tc.expectedRecordCount, afterBoardCount)
 		})
 	}
 }
