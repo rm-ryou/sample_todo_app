@@ -57,7 +57,7 @@ func deleteAllTodos(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGetAll(t *testing.T) {
+func TestGetAllTodo(t *testing.T) {
 	testCases := []struct {
 		name          string
 		savedTodos    []*entities.Todo
@@ -132,7 +132,7 @@ func TestGetAll(t *testing.T) {
 	}
 }
 
-func TestGetById(t *testing.T) {
+func TestGetByIdTodo(t *testing.T) {
 	testCases := []struct {
 		name          string
 		id            int
@@ -188,7 +188,7 @@ func TestGetById(t *testing.T) {
 	}
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateTodo(t *testing.T) {
 	beforeCount := getTodoCount(t)
 
 	testCases := []struct {
@@ -233,7 +233,7 @@ func assertTodoHelper(t *testing.T, expected, actual *entities.Todo) {
 	assert.Equal(t, expected.CreatedAt, actual.CreatedAt)
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateTodo(t *testing.T) {
 	testCases := []struct {
 		name          string
 		savedData     *entities.Todo
@@ -303,7 +303,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteTodo(t *testing.T) {
 	savedTodo := &entities.Todo{
 		Id:        1,
 		Title:     "done task",
