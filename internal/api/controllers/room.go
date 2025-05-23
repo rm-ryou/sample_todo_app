@@ -13,51 +13,29 @@ import (
 	"github.com/rm-ryou/sample_todo_app/internal/interfaces"
 )
 
-type TodoController struct {
-	service interfaces.TodoServicer
+type RoomController struct {
+	service interfaces.RoomServicer
 }
 
-func NewTodoController(service interfaces.TodoServicer) *TodoController {
-	return &TodoController{
+func NewRoomController(service interfaces.RoomServicer) *RoomController {
+	return &RoomController{
 		service: service,
 	}
 }
 
-func (tc *TodoController) GetAll(w http.ResponseWriter, r *http.Request) {
-	todos, err := tc.service.GetAll()
+func (rc *RoomController) GetAll(w http.ResponseWriter, r *http.Request) {
+	rooms, err := rc.service.GetAll()
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	res := response.ConvertoTodosResponse(todos)
+	res := response.ConvertRoomsResponse(rooms)
 	response.Basic(w, http.StatusOK, res)
 }
 
-func (tc *TodoController) GetById(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.Error(w, http.StatusBadRequest, err)
-		return
-	}
-
-	todo, err := tc.service.GetById(id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			response.Error(w, http.StatusNotFound, err)
-			return
-		}
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	res := response.ConvertTodoResponse(todo)
-	response.Basic(w, http.StatusOK, res)
-}
-
-func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
-	var req request.TodoRequest
+func (rc *RoomController) Create(w http.ResponseWriter, r *http.Request) {
+	req := request.Room{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return
@@ -69,7 +47,7 @@ func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := tc.service.Create(req.Title, req.Done, req.Priority, req.DueDate)
+	err := rc.service.Create(req.Name)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -78,16 +56,15 @@ func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
 	response.Basic(w, http.StatusOK, response.BasicResponse{Message: "OK"})
 }
 
-func (tc *TodoController) Update(w http.ResponseWriter, r *http.Request) {
+func (rc *RoomController) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return
 	}
 
-	var req request.TodoRequest
+	req := request.Room{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return
@@ -99,7 +76,7 @@ func (tc *TodoController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = tc.service.Update(id, req.Title, req.Done, req.Priority, req.DueDate)
+	err = rc.service.Update(id, req.Name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			response.Error(w, http.StatusNotFound, err)
@@ -112,16 +89,15 @@ func (tc *TodoController) Update(w http.ResponseWriter, r *http.Request) {
 	response.Basic(w, http.StatusOK, response.BasicResponse{Message: "OK"})
 }
 
-func (tc *TodoController) Delete(w http.ResponseWriter, r *http.Request) {
+func (rc *RoomController) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return
 	}
 
-	err = tc.service.Delete(id)
+	err = rc.service.Delete(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			response.Error(w, http.StatusNotFound, err)

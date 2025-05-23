@@ -35,20 +35,9 @@ func (t *Todo) Validate() error {
 	return nil
 }
 
-func (t *Todo) UpdateTitle(title string) error {
+func (t *Todo) UpdateAttributes(title string, done bool, priority int, dueDate *time.Time) {
 	t.Title = title
-	return t.Validate()
-}
-
-func (t *Todo) UpdateDone(done bool) {
 	t.Done = done
-}
-
-func (t *Todo) UpdatePriority(priority int) error {
 	t.Priority = priority
-	return t.Validate()
-}
-
-func (t *Todo) UpdateDueDate(dueDate *time.Time) {
 	t.DueDate = dueDate
 }
