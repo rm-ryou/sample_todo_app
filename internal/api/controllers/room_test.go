@@ -124,7 +124,7 @@ func TestCreateRoom(t *testing.T) {
 	}{
 		{
 			name:        "Success to Create new room",
-			requestBody: `{"Name":"test room"}`,
+			requestBody: `{"name":"test room"}`,
 			setupMock: func() {
 				mockService.EXPECT().Create("test room").Return(nil)
 			},
