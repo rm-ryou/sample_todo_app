@@ -7,6 +7,7 @@ import (
 
 type Todo struct {
 	Id        int
+	BoardId   int
 	Title     string
 	Done      bool
 	Priority  int
@@ -15,8 +16,9 @@ type Todo struct {
 	UpdatedAt time.Time
 }
 
-func NewTodo(title string, done bool, priority int, dueDate *time.Time) *Todo {
+func NewTodo(boardId int, title string, done bool, priority int, dueDate *time.Time) *Todo {
 	return &Todo{
+		BoardId:  boardId,
 		Title:    title,
 		Done:     done,
 		Priority: priority,
