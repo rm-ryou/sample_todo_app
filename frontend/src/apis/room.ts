@@ -11,6 +11,7 @@ export const roomsLoader = async () => {
     const resData: Rooms = await response.json()
     return resData
   } catch (error) {
+    console.error(error)
     // TODO: handle error
   }
 }
