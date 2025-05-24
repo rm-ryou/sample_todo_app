@@ -10,6 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var referencedBoardData = entities.Board{
+	Id:        1,
+	Name:      "referencedRoom",
+	Priority:  0,
+	RoomId:    1,
+	CreatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+	UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+}
+
 func getTodoCount(t *testing.T) int {
 	var count int
 
@@ -22,7 +31,18 @@ func getTodoCount(t *testing.T) int {
 
 func getTodoById(t *testing.T, id int) *entities.Todo {
 	var todo entities.Todo
-	query := "SELECT * FROM todos WHERE id = ?"
+	query := `SELECT
+		id,
+		title,
+		done,
+		priority,
+		due_date,
+		board_id,
+		created_at,
+		updated_at
+	FROM
+		todos
+	WHERE id = ?`
 
 	err := TodoRepo.db.QueryRow(query, id).Scan(
 		&todo.Id,
@@ -30,6 +50,7 @@ func getTodoById(t *testing.T, id int) *entities.Todo {
 		&todo.Done,
 		&todo.Priority,
 		&todo.DueDate,
+		&todo.BoardId,
 		&todo.CreatedAt,
 		&todo.UpdatedAt,
 	)
@@ -40,12 +61,22 @@ func getTodoById(t *testing.T, id int) *entities.Todo {
 
 func insertDummyTodo(t *testing.T, todo *entities.Todo) {
 	query := `INSERT INTO todos
-		(id, title, done, priority, due_date, created_at, updated_at)
+		(id, title, done, priority, due_date, board_id, created_at, updated_at)
 	VALUES
-		(?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
-	res, err := TodoRepo.db.Exec(query, todo.Id, todo.Title, todo.Done, todo.Priority, todo.DueDate, todo.CreatedAt, todo.UpdatedAt)
+	res, err := TodoRepo.db.Exec(
+		query,
+		todo.Id,
+		todo.Title,
+		todo.Done,
+		todo.Priority,
+		todo.DueDate,
+		todo.BoardId,
+		todo.CreatedAt,
+		todo.UpdatedAt,
+	)
 	require.NoError(t, err)
 	_, err = res.LastInsertId()
 	require.NoError(t, err)
@@ -58,6 +89,11 @@ func deleteAllTodos(t *testing.T) {
 }
 
 func TestGetAllTodo(t *testing.T) {
+	insertDummyRoom(t, &referencedRoomData)
+	defer deleteAllRooms(t)
+	insertDummyBoard(t, &referencedBoardData)
+	defer deleteAllBoards(t)
+
 	testCases := []struct {
 		name          string
 		savedTodos    []*entities.Todo
@@ -73,6 +109,7 @@ func TestGetAllTodo(t *testing.T) {
 					Title:     "done task",
 					Done:      true,
 					Priority:  0,
+					BoardId:   1,
 					CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 				},
@@ -81,6 +118,7 @@ func TestGetAllTodo(t *testing.T) {
 					Title:     "Test Task",
 					Done:      false,
 					Priority:  3,
+					BoardId:   1,
 					CreatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 				},
@@ -97,6 +135,7 @@ func TestGetAllTodo(t *testing.T) {
 					Title:     "done task",
 					Done:      true,
 					Priority:  0,
+					BoardId:   1,
 					CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 				},
@@ -105,6 +144,7 @@ func TestGetAllTodo(t *testing.T) {
 					Title:     "Test Task",
 					Done:      false,
 					Priority:  3,
+					BoardId:   1,
 					CreatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 				},
@@ -133,6 +173,11 @@ func TestGetAllTodo(t *testing.T) {
 }
 
 func TestGetByIdTodo(t *testing.T) {
+	insertDummyRoom(t, &referencedRoomData)
+	defer deleteAllRooms(t)
+	insertDummyBoard(t, &referencedBoardData)
+	defer deleteAllBoards(t)
+
 	testCases := []struct {
 		name          string
 		id            int
@@ -146,6 +191,7 @@ func TestGetByIdTodo(t *testing.T) {
 			id:   1,
 			savedTodo: &entities.Todo{
 				Id:        1,
+				BoardId:   1,
 				Title:     "done task",
 				Done:      true,
 				Priority:  0,
@@ -158,6 +204,7 @@ func TestGetByIdTodo(t *testing.T) {
 			expectedError: nil,
 			expectedData: &entities.Todo{
 				Id:        1,
+				BoardId:   1,
 				Title:     "done task",
 				Done:      true,
 				Priority:  0,
@@ -189,6 +236,11 @@ func TestGetByIdTodo(t *testing.T) {
 }
 
 func TestCreateTodo(t *testing.T) {
+	insertDummyRoom(t, &referencedRoomData)
+	defer deleteAllRooms(t)
+	insertDummyBoard(t, &referencedBoardData)
+	defer deleteAllBoards(t)
+
 	beforeCount := getTodoCount(t)
 
 	testCases := []struct {
@@ -200,9 +252,10 @@ func TestCreateTodo(t *testing.T) {
 		{
 			name: "Success to Create todo",
 			todo: &entities.Todo{
-				Title:    "Test!!",
+				Title:    "test todo",
 				Done:     false,
 				Priority: 1,
+				BoardId:  1,
 			},
 			expectedError:       nil,
 			expectedRecordCount: beforeCount + 1,
@@ -230,10 +283,16 @@ func assertTodoHelper(t *testing.T, expected, actual *entities.Todo) {
 	assert.Equal(t, expected.Done, actual.Done)
 	assert.Equal(t, expected.Priority, actual.Priority)
 	assert.Equal(t, expected.DueDate, actual.DueDate)
+	assert.Equal(t, expected.BoardId, actual.BoardId)
 	assert.Equal(t, expected.CreatedAt, actual.CreatedAt)
 }
 
 func TestUpdateTodo(t *testing.T) {
+	insertDummyRoom(t, &referencedRoomData)
+	defer deleteAllRooms(t)
+	insertDummyBoard(t, &referencedBoardData)
+	defer deleteAllBoards(t)
+
 	testCases := []struct {
 		name          string
 		savedData     *entities.Todo
@@ -249,6 +308,7 @@ func TestUpdateTodo(t *testing.T) {
 				Title:     "done task",
 				Done:      true,
 				Priority:  0,
+				BoardId:   1,
 				CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 				UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 			},
@@ -257,6 +317,7 @@ func TestUpdateTodo(t *testing.T) {
 				Title:     "updated!!",
 				Done:      true,
 				Priority:  0,
+				BoardId:   1,
 				CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 			},
 			setup: func(t *testing.T, todo *entities.Todo) {
@@ -268,6 +329,7 @@ func TestUpdateTodo(t *testing.T) {
 				Title:     "updated!!",
 				Done:      true,
 				Priority:  0,
+				BoardId:   1,
 				CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 			},
 		},
@@ -279,6 +341,7 @@ func TestUpdateTodo(t *testing.T) {
 				Title:     "updated!!",
 				Done:      true,
 				Priority:  0,
+				BoardId:   1,
 				CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 			},
 			setup:         func(t *testing.T, todo *entities.Todo) {},
@@ -304,11 +367,17 @@ func TestUpdateTodo(t *testing.T) {
 }
 
 func TestDeleteTodo(t *testing.T) {
+	insertDummyRoom(t, &referencedRoomData)
+	defer deleteAllRooms(t)
+	insertDummyBoard(t, &referencedBoardData)
+	defer deleteAllBoards(t)
+
 	savedTodo := &entities.Todo{
 		Id:        1,
 		Title:     "done task",
 		Done:      true,
 		Priority:  0,
+		BoardId:   1,
 		CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 		UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 	}

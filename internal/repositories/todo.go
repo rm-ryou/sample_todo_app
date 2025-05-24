@@ -3,7 +3,6 @@ package repositories
 import (
 	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/rm-ryou/sample_todo_app/internal/entities"
 )
 
@@ -18,7 +17,7 @@ func NewTodoRepository(db *sql.DB) *TodoRepository {
 }
 
 func (tr *TodoRepository) GetAll() ([]*entities.Todo, error) {
-	query := "SELECT id, title, done, priority, due_date, created_at, updated_at FROM todos"
+	query := "SELECT id, title, done, priority, due_date, board_id, created_at, updated_at FROM todos"
 
 	stmt, err := tr.db.Prepare(query)
 	if err != nil {
@@ -40,6 +39,7 @@ func (tr *TodoRepository) GetAll() ([]*entities.Todo, error) {
 			&t.Done,
 			&t.Priority,
 			&t.DueDate,
+			&t.BoardId,
 			&t.CreatedAt,
 			&t.UpdatedAt,
 		); err != nil {
@@ -53,7 +53,18 @@ func (tr *TodoRepository) GetAll() ([]*entities.Todo, error) {
 
 func (tr *TodoRepository) GetById(id int) (*entities.Todo, error) {
 	var todo entities.Todo
-	query := "SELECT id, title, done, priority, due_date, created_at, updated_at FROM todos WHERE id = ?"
+	query := `SELECT
+			id,
+			title,
+			done,
+			priority,
+			due_date,
+			board_id,
+			created_at,
+			updated_at
+		FROM
+			todos
+		WHERE id = ?`
 
 	if err := tr.db.QueryRow(query, id).Scan(
 		&todo.Id,
@@ -61,6 +72,7 @@ func (tr *TodoRepository) GetById(id int) (*entities.Todo, error) {
 		&todo.Done,
 		&todo.Priority,
 		&todo.DueDate,
+		&todo.BoardId,
 		&todo.CreatedAt,
 		&todo.UpdatedAt,
 	); err != nil {
@@ -71,7 +83,7 @@ func (tr *TodoRepository) GetById(id int) (*entities.Todo, error) {
 }
 
 func (tr *TodoRepository) Create(todo *entities.Todo) error {
-	query := "INSERT INTO todos (title, done, priority, due_date) VALUES (?, ?, ?, ?)"
+	query := "INSERT INTO todos (title, done, priority, due_date, board_id) VALUES (?, ?, ?, ?, ?)"
 
 	stmt, err := tr.db.Prepare(query)
 	if err != nil {
@@ -79,7 +91,7 @@ func (tr *TodoRepository) Create(todo *entities.Todo) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(todo.Title, todo.Done, todo.Priority, todo.DueDate)
+	_, err = stmt.Exec(todo.Title, todo.Done, todo.Priority, todo.DueDate, todo.BoardId)
 	if err != nil {
 		return err
 	}
