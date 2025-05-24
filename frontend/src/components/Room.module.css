@@ -23,3 +23,15 @@
   font-weight: bold;
   text-align: center;
 }
+
+.roominput {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: auto;
+  padding: 1rem;
+  border: none;
+  outline: none;
+  display: flex;
+  text-align: center;
+  background-color: #48a6a7;
+}
