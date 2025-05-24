@@ -18,7 +18,7 @@ func InitRoutes(db *sql.DB) http.Handler {
 
 	mux.Handle("/health", healthCheckMux())
 	mux.Handle("/v1/rooms/", roomMux(db))
-	mux.Handle("/v1/todos/", todoMux(db))
+	mux.Handle("/v1/boards/{boardId}/todos/", todoMux(db))
 
 	c := cors.New(cors.Options{
 		// TODO: fix allow origin
@@ -75,17 +75,15 @@ func todoMux(db *sql.DB) *http.ServeMux {
 	controller := NewTodoController(service)
 
 	mux := http.NewServeMux()
-	mux.Handle("/v1/todos/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/v1/boards/{boardId}/todos/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
-		case http.MethodGet:
-			controller.GetAll(w, r)
 		case http.MethodPost:
 			controller.Create(w, r)
 		default:
 			response.Error(w, http.StatusMethodNotAllowed, fmt.Errorf("%s is not allowed", r.Method))
 		}
 	}))
-	mux.Handle("/v1/todos/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/v1/boards/{boardId}/todos/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			controller.GetById(w, r)

@@ -338,6 +338,15 @@ func TestDeleteBoard(t *testing.T) {
 		CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
 		UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
 	}
+	relatedTodo := &entities.Todo{
+		Id:        1,
+		Title:     "done task",
+		Done:      true,
+		Priority:  0,
+		BoardId:   1,
+		CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Date(2025, 4, 1, 10, 0, 0, 0, time.UTC),
+	}
 
 	testCases := []struct {
 		name                string
@@ -347,10 +356,11 @@ func TestDeleteBoard(t *testing.T) {
 		expectedRecordCount int
 	}{
 		{
-			name:     "Success to Delete board",
+			name:     "Success to Delete board. the todo associated with it is also deleted",
 			deleteId: savedBoard.Id,
 			setup: func(t *testing.T) {
 				insertDummyBoard(t, savedBoard)
+				insertDummyTodo(t, relatedTodo)
 			},
 			expectedError:       nil,
 			expectedRecordCount: 0,
@@ -360,6 +370,7 @@ func TestDeleteBoard(t *testing.T) {
 			deleteId: 999,
 			setup: func(t *testing.T) {
 				insertDummyBoard(t, savedBoard)
+				insertDummyTodo(t, relatedTodo)
 			},
 			expectedError:       nil,
 			expectedRecordCount: 1,
@@ -373,9 +384,11 @@ func TestDeleteBoard(t *testing.T) {
 
 			err := BoardRepo.Delete(tc.deleteId)
 
-			afterCount := getBoardCount(t)
+			afterBoardCount := getBoardCount(t)
+			afterTodoCount := getTodoCount(t)
 			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedRecordCount, afterCount)
+			assert.Equal(t, tc.expectedRecordCount, afterBoardCount)
+			assert.Equal(t, tc.expectedRecordCount, afterTodoCount)
 		})
 	}
 }

@@ -17,16 +17,12 @@ func NewTodoService(repo interfaces.TodoRepository) *TodoService {
 	}
 }
 
-func (ts *TodoService) GetAll() ([]*entities.Todo, error) {
-	return ts.repo.GetAll()
-}
-
 func (ts *TodoService) GetById(id int) (*entities.Todo, error) {
 	return ts.repo.GetById(id)
 }
 
-func (ts *TodoService) Create(title string, done bool, priority int, dueDate *time.Time) error {
-	todo := entities.NewTodo(title, done, priority, dueDate)
+func (ts *TodoService) Create(boardId int, title string, done bool, priority int, dueDate *time.Time) error {
+	todo := entities.NewTodo(boardId, title, done, priority, dueDate)
 	if err := todo.Validate(); err != nil {
 		return err
 	}
