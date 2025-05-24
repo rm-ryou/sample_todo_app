@@ -7,7 +7,6 @@ import (
 )
 
 type TodoRepository interface {
-	GetAll() ([]*entities.Todo, error)
 	GetById(id int) (*entities.Todo, error)
 	Create(todo *entities.Todo) error
 	Update(todo *entities.Todo) error
@@ -15,7 +14,6 @@ type TodoRepository interface {
 }
 
 type TodoServicer interface {
-	GetAll() ([]*entities.Todo, error)
 	GetById(id int) (*entities.Todo, error)
 	Create(boardId int, title string, done bool, priority int, dueDate *time.Time) error
 	Update(id int, title string, done bool, priority int, dueDate *time.Time) error

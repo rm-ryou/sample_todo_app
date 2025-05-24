@@ -16,41 +16,6 @@ func NewTodoRepository(db *sql.DB) *TodoRepository {
 	}
 }
 
-func (tr *TodoRepository) GetAll() ([]*entities.Todo, error) {
-	query := "SELECT id, title, done, priority, due_date, board_id, created_at, updated_at FROM todos"
-
-	stmt, err := tr.db.Prepare(query)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	var todos []*entities.Todo
-	rows, err := stmt.Query()
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		var t entities.Todo
-		if err := rows.Scan(
-			&t.Id,
-			&t.Title,
-			&t.Done,
-			&t.Priority,
-			&t.DueDate,
-			&t.BoardId,
-			&t.CreatedAt,
-			&t.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		todos = append(todos, &t)
-	}
-
-	return todos, nil
-}
-
 func (tr *TodoRepository) GetById(id int) (*entities.Todo, error) {
 	var todo entities.Todo
 	query := `SELECT

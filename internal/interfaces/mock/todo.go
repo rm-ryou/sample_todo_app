@@ -69,21 +69,6 @@ func (mr *MockTodoRepositoryMockRecorder) Delete(id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTodoRepository)(nil).Delete), id)
 }
 
-// GetAll mocks base method.
-func (m *MockTodoRepository) GetAll() ([]*entities.Todo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
-	ret0, _ := ret[0].([]*entities.Todo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll.
-func (mr *MockTodoRepositoryMockRecorder) GetAll() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTodoRepository)(nil).GetAll))
-}
-
 // GetById mocks base method.
 func (m *MockTodoRepository) GetById(id int) (*entities.Todo, error) {
 	m.ctrl.T.Helper()
@@ -163,21 +148,6 @@ func (m *MockTodoServicer) Delete(id int) error {
 func (mr *MockTodoServicerMockRecorder) Delete(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTodoServicer)(nil).Delete), id)
-}
-
-// GetAll mocks base method.
-func (m *MockTodoServicer) GetAll() ([]*entities.Todo, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
-	ret0, _ := ret[0].([]*entities.Todo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll.
-func (mr *MockTodoServicerMockRecorder) GetAll() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTodoServicer)(nil).GetAll))
 }
 
 // GetById mocks base method.
