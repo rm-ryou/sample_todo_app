@@ -138,17 +138,17 @@ func (m *MockTodoServicer) EXPECT() *MockTodoServicerMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockTodoServicer) Create(title string, done bool, priority int, dueDate *time.Time) error {
+func (m *MockTodoServicer) Create(boardId int, title string, done bool, priority int, dueDate *time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", title, done, priority, dueDate)
+	ret := m.ctrl.Call(m, "Create", boardId, title, done, priority, dueDate)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockTodoServicerMockRecorder) Create(title, done, priority, dueDate any) *gomock.Call {
+func (mr *MockTodoServicerMockRecorder) Create(boardId, title, done, priority, dueDate any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoServicer)(nil).Create), title, done, priority, dueDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoServicer)(nil).Create), boardId, title, done, priority, dueDate)
 }
 
 // Delete mocks base method.
