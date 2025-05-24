@@ -23,17 +23,6 @@ func NewTodoController(service interfaces.TodoServicer) *TodoController {
 	}
 }
 
-func (tc *TodoController) GetAll(w http.ResponseWriter, r *http.Request) {
-	todos, err := tc.service.GetAll()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	res := response.ConvertoTodosResponse(todos)
-	response.Basic(w, http.StatusOK, res)
-}
-
 func (tc *TodoController) GetById(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
@@ -57,7 +46,14 @@ func (tc *TodoController) GetById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
-	var req request.TodoRequest
+	boardIdStr := r.PathValue("boardId")
+	boardId, err := strconv.Atoi(boardIdStr)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	var req request.Todo
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return
@@ -69,8 +65,7 @@ func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := tc.service.Create(req.Title, req.Done, req.Priority, req.DueDate)
-	if err != nil {
+	if err := tc.service.Create(boardId, req.Title, req.Done, req.Priority, req.DueDate); err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -80,14 +75,13 @@ func (tc *TodoController) Create(w http.ResponseWriter, r *http.Request) {
 
 func (tc *TodoController) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return
 	}
 
-	var req request.TodoRequest
+	var req request.Todo
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, err)
 		return

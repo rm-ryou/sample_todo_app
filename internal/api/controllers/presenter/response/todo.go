@@ -15,6 +15,7 @@ type Todo struct {
 	Title     string     `json:"title"`
 	Done      bool       `json:"done"`
 	Priority  int        `json:"priority"`
+	BoardId   int        `json:"board_id"`
 	DueDate   *time.Time `json:"due_date,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
@@ -27,6 +28,7 @@ func ConvertTodoResponse(todo *entities.Todo) *Todo {
 		Done:      todo.Done,
 		Priority:  todo.Priority,
 		DueDate:   todo.DueDate,
+		BoardId:   todo.BoardId,
 		CreatedAt: todo.CreatedAt,
 		UpdatedAt: todo.UpdatedAt,
 	}
