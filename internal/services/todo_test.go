@@ -26,6 +26,7 @@ func TestCreateTodo(t *testing.T) {
 		done          bool
 		priority      int
 		dueDate       *time.Time
+		boardId       int
 		mockSetup     func(todo *entities.Todo)
 		expectedError error
 	}{
@@ -35,6 +36,7 @@ func TestCreateTodo(t *testing.T) {
 			done:     false,
 			priority: 0,
 			dueDate:  nil,
+			boardId:  1,
 			mockSetup: func(todo *entities.Todo) {
 				mockRepository.EXPECT().Create(todo).
 					Return(nil)
@@ -47,6 +49,7 @@ func TestCreateTodo(t *testing.T) {
 			done:          false,
 			priority:      0,
 			dueDate:       nil,
+			boardId:       1,
 			mockSetup:     func(todo *entities.Todo) {},
 			expectedError: errors.New("Invalid title"),
 		},
@@ -56,6 +59,7 @@ func TestCreateTodo(t *testing.T) {
 			done:          false,
 			priority:      0,
 			dueDate:       nil,
+			boardId:       1,
 			mockSetup:     func(todo *entities.Todo) {},
 			expectedError: errors.New("Invalid title"),
 		},
@@ -65,6 +69,7 @@ func TestCreateTodo(t *testing.T) {
 			done:          false,
 			priority:      -1,
 			dueDate:       nil,
+			boardId:       1,
 			mockSetup:     func(todo *entities.Todo) {},
 			expectedError: errors.New("Invalid priority size"),
 		},
@@ -73,6 +78,7 @@ func TestCreateTodo(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			todo := &entities.Todo{
+				BoardId:  tc.boardId,
 				Title:    tc.title,
 				Done:     tc.done,
 				Priority: tc.priority,
@@ -80,7 +86,7 @@ func TestCreateTodo(t *testing.T) {
 			}
 			tc.mockSetup(todo)
 
-			err := service.Create(tc.title, tc.done, tc.priority, tc.dueDate)
+			err := service.Create(tc.boardId, tc.title, tc.done, tc.priority, tc.dueDate)
 
 			assert.Equal(t, tc.expectedError, err)
 		})
