@@ -4,7 +4,7 @@ export const roomsLoader = async () => {
   const endpoint = import.meta.env.VITE_API_ENDPOINT
 
   try {
-    const response = await fetch(`${endpoint}/v1/rooms/`)
+    const response = await fetch(`${endpoint}/v1/rooms`)
     if (!response.ok) {
       // TODO: handle error
     }
