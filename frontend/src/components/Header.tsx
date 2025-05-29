@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import DeleteIcon from '@mui/icons-material/Delete'
+import Trash from './Trash'
 
 import styles from './Header.module.css'
 
@@ -9,7 +9,7 @@ const Header = () => {
       <Link to='/' className={styles.logo}>
         <h1>Sample todo app</h1>
       </Link>
-      <DeleteIcon fontSize='large' />
+      <Trash />
     </header>
   )
 }

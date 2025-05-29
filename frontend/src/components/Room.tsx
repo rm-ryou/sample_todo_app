@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useDraggable } from '@dnd-kit/core'
 
 import type { Room as RoomType } from '@/types'
 import styles from './Room.module.css'
@@ -9,47 +9,21 @@ interface RoomProps {
 
 const Room = (props: RoomProps) => {
   const { room } = props
-  const [isEditing, setIsEditing] = useState(false)
-  const [name, setName] = useState(room.name)
-
-  const handleDoubleClick = () => {
-    setIsEditing(true)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value)
-  }
-
-  const handleBlur = () => {
-    setIsEditing(false)
-    // TODO: send data
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      setIsEditing(false)
-      // TODO: send data
-    }
-  }
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: room.id,
+  })
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined
 
   return (
-    <li className={styles.room}>
-      {isEditing ? (
-        <input
-          type='text'
-          autoFocus
-          value={name}
-          className={styles.roominput}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-        />
-      ) : (
-        <p className={styles.name} onDoubleClick={handleDoubleClick}>
-          {name}
-        </p>
-      )}
-    </li>
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <li className={styles.room}>
+        <p className={styles.name}>{room.name}</p>
+      </li>
+    </div>
   )
 }
 

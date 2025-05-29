@@ -1,8 +1,7 @@
 import { useLoaderData } from 'react-router'
 import Room from './Room'
-import type { Rooms } from '@/types'
-
 import styles from './RoomsList.module.css'
+import type { Rooms } from '@/types'
 
 const RoomsList = () => {
   const roomsData: Rooms = useLoaderData()
