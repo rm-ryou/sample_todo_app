@@ -11,6 +11,9 @@ const Room = (props: RoomProps) => {
   const { room } = props
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: room.id,
+    data: {
+      type: 'room',
+    },
   })
   const style = transform
     ? {
